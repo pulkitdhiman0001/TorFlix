@@ -1,0 +1,52 @@
+{% extends 'skel.html' %}
+
+{% block content %}
+
+<style>
+    body{
+
+        background-image: url('{{url_for('static', filename='images/user_login_bg.jpg')}}');
+
+    }
+
+
+</style>
+
+<link rel="stylesheet" href="{{url_for('static', filename='css/user_login.css')}}">
+{%- for category, message in get_flashed_messages(with_categories = true) %}
+{%if category== 'error'%}
+<div class="alert bg-danger alert-dismissible fade show text-white" role="alert" id="alert_danger">
+
+    <strong>{{message}}</strong>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% else %}
+<div class="alert bg-info alert-dismissible fade show text-dark" role="alert" id="alert_success">
+
+    <strong>{{message}}</strong>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+{% endfor %}
+<div class="login-container">
+    <div class="login-box">
+        <h1>Sign Up</h1>
+        <form action="{{url_for('register_user')}}" method="post">
+            <input placeholder="Email" type="email" name="email" class="login-input" required>
+            <input type="password" placeholder="Password" name="password" class="login-input" required>
+            <input type="password" placeholder="Confirm Password" name="confirm_password" class="login-input" required>
+            <button class="login-button">Sign Up</button>
+
+        </form>
+        <div class="row mt-2">
+            <div class="col">
+                <p style="color: #adadad">Already have Account? <span style="font-size:bold; color:white; cursor:pointer"
+                                                                onclick="location.href='{{url_for('user_login')}}'">Login Now.</span>
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

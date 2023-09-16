@@ -1,0 +1,143 @@
+{% extends 'skel.html' %}
+
+{% block content %}
+
+
+
+<link rel="stylesheet" href="{{url_for('static', filename='css/user_login.css')}}">
+{%- for category, message in get_flashed_messages(with_categories = true) %}
+{%if category== 'error'%}
+<div class="alert bg-danger alert-dismissible fade show text-white" role="alert" id="alert_danger">
+
+    <strong>{{message}}</strong>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% else %}
+<div class="alert bg-info alert-dismissible fade show text-dark" role="alert" id="alert_success">
+
+    <strong>{{message}}</strong>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+{% endfor %}
+<div class="login-container" style="background-image: url('{{url_for('static', filename='images/user_login_bg.jpg')}}');">
+
+    <div class="login-box">
+        <h6 class="mb-3">A OTP (One Time Password) has been sent to '{{user}}'. Please enter the OTP to verify your
+                        E-Mail.</h6>
+        <!--        <input type="email" placeholder="Email" class="login-input" required>-->
+        <form method="POST" action="{{url_for('verify_otp_for_account_recovery')}}">
+
+            <input placeholder="Enter OTP" name="verify_otp" class="login-input" required>
+
+            <button class="login-button">Verify OTP</button>
+            <input type="text" value="{{user}}" name="user" hidden>
+        </form>
+        <div class="row mt-3">
+            <div class="col">
+                <p style="color:red; visibility:visible" id="valid_for">Valid for <span id="otp_timer"></span></p>
+                <p style="color:red; visibility:hidden" id="otp_expired">OTP Expired*</p>
+
+            </div>
+            <div class="col d-flex justify-content-end">
+                 <form method="POST" action="{{url_for('generate_new_otp')}}">
+                    <button id="generate_new_otp" type="submit" style="cursor:pointer; border:none; background:transparent; color:#7b6565" disabled>Resend code.</button>
+                     <input type="text" value="{{user}}" name="user" hidden>
+                 </form>
+            </div>
+
+        </div>
+        <hr style="color:white; background:white">
+        <div class="row mt-2">
+            <div class="col">
+                <p style="color: #adadad">Already have Account? <span style="font-size:bold; color:white; cursor:pointer"
+                                                                onclick="location.href='{{url_for('user_login')}}'">Login Now.</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+<script>
+<!--    let timerOn = true;-->
+
+<!--function timer(remaining) {-->
+<!--  var m = Math.floor(remaining / 60);-->
+<!--  var s = remaining % 60;-->
+
+<!--  m = m < 10 ? '0' + m : m;-->
+<!--  s = s < 10 ? '0' + s : s;-->
+<!--  document.getElementById('timer').innerHTML = m + ':' + s;-->
+
+<!--  remaining -= 1;-->
+
+<!--  if(remaining >= 0 && timerOn) {-->
+<!--    setTimeout(function() {-->
+<!--        timer(remaining);-->
+<!--    }, 1000);-->
+<!--    return;-->
+<!--  }-->
+
+<!--  if(!timerOn) {-->
+<!--    // Do validate stuff here-->
+<!--    return;-->
+<!--  }-->
+
+<!--  // Do timeout stuff here-->
+<!--  $('#generate_new_otp').prop('disabled', false);-->
+<!--  $('#timer').css('display', 'none');-->
+<!--}-->
+
+<!--timer(30);-->
+
+
+
+
+let otp_timerOn = true
+
+function otp_timer(remaining) {
+  var m = Math.floor(remaining / 60);
+  var s = remaining % 60;
+
+  m = m < 10 ? '0' + m : m;
+  s = s < 10 ? '0' + s : s;
+  document.getElementById('otp_timer').innerHTML = m + ':' + s;
+  remaining -= 1;
+
+  if(remaining >= 0 && otp_timerOn) {
+    setTimeout(function() {
+        otp_timer(remaining);
+    }, 1000);
+    return;
+  }
+
+  if(!otp_timerOn) {
+    // Do validate stuff here
+    return;
+  }
+
+  // Do timeout stuff here
+  $('#otp_timer').css('display', 'none');
+  $('#valid_for').css('display', 'none');
+  $('#otp_expired').css('visibility', 'visible');
+  $('#generate_new_otp').css({'color':'white'})
+  $('#generate_new_otp').prop('disabled', false);
+}
+
+otp_timer(300);
+
+
+
+function show_loader(){
+        document.getElementById("loader").style.visibility = "visible";
+
+}
+</script>
+
+{% endblock %}

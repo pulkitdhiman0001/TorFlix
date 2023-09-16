@@ -1,0 +1,44 @@
+{% extends 'skel.html' %}
+
+{% block content %}
+
+
+<link rel="stylesheet" href="{{url_for('static', filename='css/user_login.css')}}">
+{%- for category, message in get_flashed_messages(with_categories = true) %}
+{%if category== 'error'%}
+<div class="alert bg-danger alert-dismissible fade show text-white" role="alert" id="alert_danger">
+
+    <strong>{{message}}</strong>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% else %}
+<div class="alert bg-info alert-dismissible fade show text-dark" role="alert" id="alert_success">
+
+    <strong>{{message}}</strong>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+{% endfor %}
+<div class="login-container" style="background-image: url('{{url_for('static', filename='images/user_login_bg.jpg')}}');">
+
+    <div class="login-box">
+        <h1>Account Recovery</h1>
+        <form action="{{url_for('get_email')}}" method="post">
+
+            <input placeholder="Email" type="email" name="email" class="login-input" required>
+
+            <button class="login-button" type="submit">Send OTP</button>
+
+        </form>
+
+        <div class="row mt-3">
+            <div class="col">
+                <p style="color: #adadad">New to Torflix? <span style="font-size:bold; color:white; cursor:pointer"
+                                                                onclick="location.href='{{url_for('register_user')}}'">Sign up now.</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

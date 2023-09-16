@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.7.1.slim.js"
+            integrity="sha256-UgvvN8vBkgO0luPSUl2s8TIlOSYRoGFAX4jlCIm9Adc=" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+
+    <link rel="stylesheet" href="{{url_for('static', filename= 'css/style.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename= 'css/history.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename= 'css/alert.css')}}">
+
+
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.6.4/plyr.css"/>
+</head>
+<body>
+<nav>
+    <div class="menu-icon">
+        <span class="fas fa-bars"></span>
+    </div>
+    <div class="logo" onclick="location.href='{{url_for('index')}}'" style="cursor:pointer">
+        TorFlix<img src="{{url_for('static', filename='images/cinema.png')}}" height="40px" alt="">
+    </div>
+    <div class="nav-items">
+
+        {% if session.username %}
+        <div class="dropdown btn-group profile_div p-2"
+             style="" id="profile_dropdown_for_mobile">
+            <button class="profile dropbtn"
+                    style="background-image: url('{{url_for('static', filename='images/profile.png')}}'); background-size:contain"></button>
+
+            <div class="dropdown-content">
+
+                <div title="Profile" id="user_for_mobile" style="border-bottom:1px solid;" class="btn-group w-100 text-white"
+                     role="group" aria-label="Basic example">
+                    <i class="fa fa-user" aria-hidden="true" style="padding:16px"></i>
+                    <a class="text-white">{{session.username.split('@')[0]}}</a>
+                </div>
+
+
+                <div title="Global Downloads" class="btn-group w-100 text-white"
+                     role="group" aria-label="Basic example">
+                    <i class="fa fa-globe" aria-hidden="true" style="padding:16px"></i>
+                    <a href="{{url_for('global_downloads')}}" class="text-white link-info">G-Downloads </a>
+                </div>
+
+                <div title="Global Download History" class="btn-group w-100 text-white"
+                     role="group" aria-label="Basic example">
+                    <i class="fa fa-history" aria-hidden="true" style="padding:16px"></i>
+                    <a class="text-white link-info" style="cursor:pointer; hover:" id="openSlider_for_mobile">G-History </a>
+                </div>
+
+
+                <div title="Download in Progress" class="btn-group w-100 text-white"
+                     role="group" aria-label="Basic example">
+                    <i class="fa fa-download" aria-hidden="true" style="padding:16px"></i>
+                    <a class="text-white link-info" style="cursor:pointer" id="currentlyDownloading_for_mobile">Downloading </a>
+                </div>
+
+                <div title="My List" class="btn-group w-100 text-white"
+                     role="group" aria-label="Basic example">
+                    <i class="fa fa-video-camera" aria-hidden="true" style="padding:16px"></i>
+                    <a class="text-white link-info" style="cursor:pointer" href="{{url_for('my_list')}}">My List</a>
+                </div>
+
+                <div title="Sign Out" class="btn-group w-100 text-white"
+                     role="group" style="border-top:1px solid white">
+                    <i class="fa fa-sign-out" aria-hidden="true" style="padding:16px"></i>
+                    <a class="text-white link-danger" style="cursor:pointer" href="{{url_for('logout')}}">Sign Out</a>
+                </div>
+
+            </div>
+        </div>
+
+        <hr style="border-bottom: 2px solid #04c9ff">
+
+        {% endif %}
+
+        <li><a href="{{url_for('index')}}">Home</a></li>
+        <li><a href="{{url_for('category', torrent_category = 'anime')}}">Anime</a></li>
+        <li><a href="{{url_for('category', torrent_category = 'tv')}}">Tv Shows</a></li>
+        <li><a href="{{url_for('category', torrent_category = 'movies')}}">Movies</a></li>
+        <!--        <li><a href="{{url_for('category', torrent_category = 'games')}}">Games</a></li>-->
+        <li><a href="{{url_for('category', torrent_category = 'music')}}">Music</a></li>
+        <!--        <li><a href="{{url_for('category', torrent_category = 'apps')}}">Apps</a></li>-->
+        <li><a href="{{url_for('category', torrent_category = 'documentaries')}}">Documentaries</a></li>
+
+
+        {% if not session.username %}
+        <li>
+            <a id="sign_in_li" class="bg-danger p-2 rounded text-white" href="{{url_for('user_login')}}">Sign In
+
+            </a>
+        </li>
+        {% endif %}
+
+    </div>
+
+
+    {% if session.username %}
+    <div class="dropdown profile_div p-2 dropstart"
+         style="" id="profile_dropdown_for_pc">
+        <button class="profile dropbtn"
+                style="background-image: url('{{url_for('static', filename='images/profile.png')}}'); background-size:contain"></button>
+
+        <div class="dropdown-content">
+
+            <div title="Profile" id="user" style="border-bottom:1px solid;" class="btn-group w-100 text-white"
+                 role="group" aria-label="Basic example">
+                <i class="fa fa-user" aria-hidden="true" style="padding:16px"></i>
+                <a class="text-white">{{session.username.split('@')[0]}}</a>
+            </div>
+
+
+            <div title="Global Downloads" class="btn-group w-100 text-white"
+                 role="group" aria-label="Basic example">
+                <i class="fa fa-globe" aria-hidden="true" style="padding:16px"></i>
+                <a href="{{url_for('global_downloads')}}" class="text-white link-info">G-Downloads </a>
+            </div>
+
+            <div title="Global Download History" class="btn-group w-100 text-white"
+                 role="group" aria-label="Basic example">
+                <i class="fa fa-history" aria-hidden="true" style="padding:16px"></i>
+                <a class="text-white link-info" style="cursor:pointer; hover:" id="openSlider_for_pc">G-History </a>
+            </div>
+
+
+            <div title="Download in Progress" class="btn-group w-100 text-white"
+                 role="group" aria-label="Basic example">
+                <i class="fa fa-download" aria-hidden="true" style="padding:16px"></i>
+                <a class="text-white link-info" style="cursor:pointer" id="currentlyDownloading_for_pc">Downloading </a>
+            </div>
+
+            <div title="My List" class="btn-group w-100 text-white"
+                 role="group" aria-label="Basic example">
+                <i class="fa fa-video-camera" aria-hidden="true" style="padding:16px"></i>
+                <a class="text-white link-info" style="cursor:pointer" href="{{url_for('my_list')}}">My List</a>
+            </div>
+
+            <div title="Sign Out" class="btn-group w-100 text-white"
+                 role="group" style="border-top:1px solid white">
+                <i class="fa fa-sign-out" aria-hidden="true" style="padding:16px"></i>
+                <a class="text-white link-danger" style="cursor:pointer" href="{{url_for('logout')}}">Sign Out</a>
+            </div>
+
+        </div>
+    </div>
+
+    <hr style="border-bottom: 2px solid #04c9ff">
+
+    {% endif %}
+
+    <div class="search-icon">
+        <span class="fas fa-search"></span>
+    </div>
+    <div class="cancel-icon">
+        <span class="fas fa-times"></span>
+    </div>
+    <form action="{{url_for('search_torrents', page_no=1)}}" method="GET">
+        <input type="search" class="search-data" id="search" placeholder="Search" value="{{request.args['search']}}" name="search"
+               required>
+        <button type="submit" class="fas fa-search"></button>
+    </form>
+
+
+</nav>
+{% include 'slider_for_mobile.html' %}
+{% include 'slider_for_pc.html' %}
+
+{% include 'slider_downloading_list_for_mobile.html' %}
+{% include 'slider_downloading_list_for_pc.html' %}
+{% if session.username %}
+<div class="sticky">
+    <div class="links-container">
+        <a class="link" href="{{url_for('category', torrent_category = 'tv')}}">TV Shows</a>
+        <a class="link" href="{{url_for('category', torrent_category = 'movies')}}">Movies</a>
+        <a class="link" href="{{url_for('my_list')}}">My List</a>
+    </div>
+</div>
+{% endif %}
+
+
+{% block content %}
+
+
+{% endblock %}
+</body>
+{% block scripts %}
+
+
+<script src="{{url_for('static', filename='js/refresh_and_get_data.js')}}"></script>
+<script src="{{url_for('static', filename= 'js/script.js')}}"></script>
+
+
+<script src="https://cdn.plyr.io/3.6.4/plyr.polyfilled.js"></script>
+
+<script>
+    const menuBtn = document.querySelector(".menu-icon span");
+    const searchBtn = document.querySelector(".search-icon");
+    const cancelBtn = document.querySelector(".cancel-icon");
+    const items = document.querySelector(".nav-items");
+    const form = document.querySelector("form");
+    menuBtn.onclick = ()=>{
+      items.classList.add("active");
+      menuBtn.classList.add("hide");
+      searchBtn.classList.add("hide");
+      cancelBtn.classList.add("show");
+    }
+    cancelBtn.onclick = ()=>{
+      items.classList.remove("active");
+      menuBtn.classList.remove("hide");
+      searchBtn.classList.remove("hide");
+      cancelBtn.classList.remove("show");
+      form.classList.remove("active");
+      cancelBtn.style.color = "#ff3d00";
+    }
+    searchBtn.onclick = ()=>{
+      form.classList.add("active");
+      searchBtn.classList.add("hide");
+      cancelBtn.classList.add("show");
+    }
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+        const player = new Plyr('video', {
+            // Configuration options can be added here
+        });
+    });
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+        const player = new Plyr('video', {
+            controls: ['play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
+            settings: [],
+            autoplay: false,
+            loop: false,
+            // Add more options as needed
+        });
+    });
+
+
+// Initialize Plyr on the audio element
+const player = new Plyr('audio');
+
+$(document).ready(function(){
+    $('.operations-group').addClass("w-100 d-flex")
+
+    const intervalId = setInterval(function() {
+         $('#alertBox').hide()
+
+    }, 4000);
+});
+
+
+
+alert_danger = $('#alert_danger')
+alert_success = $('#alert_success')
+
+if(alert_danger){
+    setTimeout(function () {
+        $(alert_danger).alert('close');
+    }, 5000);
+if(alert_success){
+    setTimeout(function () {
+        $(alert_success).alert('close');
+    }, 5000);
+}
+}
+
+
+
+</script>
+
+
+{% endblock %}
+</html>

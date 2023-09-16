@@ -1,0 +1,8 @@
+.env
+venv/
+py1337xCache.sqlite
+db.sql
+migrations
+.idea
+__pycache__/*
+*.pyc

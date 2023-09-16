@@ -1,0 +1,30 @@
+{% extends 'skel.html' %}
+{% block content %}
+
+<div class="container mt-5">
+        <h2>Users Information</h2>
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Content Downloaded</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in get_users %}
+                    <tr>
+                        <td>{{user.username}}</td>
+                        <td>{{user.email}}</td>
+                        <td><button type="button" class="btn btn-primary btn-sm">Content</button></td>
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+{% endblock %}
