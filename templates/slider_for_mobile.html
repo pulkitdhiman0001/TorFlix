@@ -28,7 +28,7 @@
 
             <div class="card-image"
                  style="background-image: url('{{movie_history['ss'][0]}}'); background-size:contain;"
-             onerror="this.style.backgroundImage='{{url_for('static', filename='images/altimage.png')}}';"
+                 onerror="this.style.backgroundImage='{{url_for('static', filename='images/altimage.png')}}';"
                  title="{{movie_history['name']}}">
 
                 <div class="head"
@@ -126,7 +126,7 @@
                         data-bs-dismiss="modal"></button>
             </div>
 
-            <div class="modal-body" style="background:#0d6b80">
+            <div class="modal-body">
 
 
                 <div id="carouselslider{{movie_history['torrentId']}}" class="carousel slide" data-bs-ride="carousel">
@@ -149,12 +149,14 @@
                         {% endif%}
 
                     </div>
-                    <a class="carousel-control-prev" href="#carouselExampleslider{{movie_history['torrentId']}}" role="button"
+                    <a class="carousel-control-prev" href="#carouselExampleslider{{movie_history['torrentId']}}"
+                       role="button"
                        data-bs-slide="prev">
                         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                         <span class="sr-only">Previous</span>
                     </a>
-                    <a class="carousel-control-next" href="#carouselslider{{ movie_history['torrentId'] }}" role="button"
+                    <a class="carousel-control-next" href="#carouselslider{{ movie_history['torrentId'] }}"
+                       role="button"
                        data-bs-slide="next">
                         <span class="carousel-control-next-icon" aria-hidden="true"></span>
                         <span class="sr-only">Next</span>
@@ -163,83 +165,116 @@
                 <!-- End of Carousel -->
 
                 <div class="container torrent-model-name-title">
-                        <h5>{{movie_history['name']}}</h5>
+                    <h5>{{movie_history['name']}}</h5>
+                </div>
+                <div class="container torrent-details mt-4">
+                    <div class="card text-center bg-danger mt-2">
+                        <div class="card-header bg-danger">
+                            Category
+                        </div>
+
+                        <div class="card-body">
+                            {{ movie_history["category"] }}
+                        </div>
+
                     </div>
-                <!-- Table Section -->
-                <table style="border-radius:20px">
-                    <tr>
+                    <div class="card text-center bg-success mt-2">
+                        <div class="card-header bg-success">
+                            Type
+                        </div>
 
-                        <th>Size</th>
-                        <th>Seeders</th>
-                        <th>Leechers</th>
-                    </tr>
-                    <tr>
+                        <div class="card-body">
+                            {{ movie_history["type"] }}
+                        </div>
 
-                        <td>{{movie_history['size']}}</td>
-                        <td>{{movie_history['seeders']}}</td>
-                        <td>{{movie_history['leechers']}}</td>
-                    </tr>
+                    </div>
+                    <div class="card text-center bg-primary mt-2">
+                        <div class="card-header bg-primary">
+                            Language
+                        </div>
 
-                </table>
+                        <div class="card-body">
+                            {{ movie_history["language"] }}
+                        </div>
 
+                    </div>
+                    {% if not movie_history['genre'] == None %}
+                    <div class="card text-center mt-2" style="background: var(--bs-pink);">
+                        <div class="card-header" style="background: var(--bs-pink);">
+                            Genre
+                        </div>
 
-                <!-- Table Section -->
-                <table class="" style="border-radius:20px">
-                    <tr>
-                        <td>Category</td>
-                        <td>{{movie_history['category']}}</td>
-                    </tr>
-                    <tr>
-                        <td>Type</td>
-                        <td>{{movie_history['type']}}</td>
-                    </tr>
-                    <tr>
-                        <td>Genre</td>
-                        <td>{% if movie_history['genre'] %}
-                            {% for genre in movie_history['genre'] %}
-                            {{genre}},
+                        <div class="card-body">
+
+                            {% for genre in movie_history['genre'] %}<span style="cursor:pointer"
+                                                                   class="badge bg-light text-dark ms-2"
+                                                                   onclick="location.href='{{url_for('badge_torrents', badge= genre)}}'">{{ genre }}</span>
                             {% endfor %}
-                            {% else %}
-                            {{movie_history['genre']}}
-                            {% endif %}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Language</td>
-                        <td>{{movie_history['language']}}</td>
-                    </tr>
 
-                </table>
+                        </div>
+
+                    </div>
+                    {% endif %}
+
+                </div>
+
+
+                <div class="w-100 torrent-info mt-4 p-0">
+                    <div class="card text-center bg-danger mt-2 flex-fill">
+                        <div class="card-header bg-danger">
+                            Size
+                        </div>
+
+                        <div class="card-body">
+                            {{ movie_history["size"] }}
+                        </div>
+
+                    </div>
+                    <div class="card text-center bg-success mt-2 flex-fill">
+                        <div class="card-header bg-success">
+                            Seeders
+                        </div>
+
+                        <div class="card-body">
+                            {{ movie_history["seeders"] }}
+                        </div>
+
+                    </div>
+                    <div class="card text-center bg-primary mt-2 flex-fill">
+                        <div class="card-header bg-primary">
+                            Leechers
+                        </div>
+
+                        <div class="card-body">
+                            {{ movie_history["leechers"] }}
+                        </div>
+
+                    </div>
+
+
+                </div>
                 {% if not movie_history['description'] == None %}
                 <!-- Accordion Section -->
-                <div id="accordionslider{{movie_history['torrentId']}}" class="mt-4">
-                    <div class="card text-white" style="background:#031923; color: white">
-                        <div class="card">
-                            <div class="card-header" id="headingTwo" style="border-bottom:1px solid cyan">
-                                <h5 class="mb-0">
-                                    <button class="btn btn-link collapsed" data-bs-toggle="collapse"
-                                            data-bs-target="#collapseTwo" aria-expanded="false"
-                                            aria-controls="collapseTwo">
-                                        Description
-                                    </button>
-                                    <button class="btn btn-link close-accordion" data-bs-toggle="collapse"
-                                            data-bs-target="#collapseTwo" aria-expanded="false"
-                                            aria-controls="collapseTwo"
-                                            style="position: absolute; top: 5px; right: 15px; color: white;">
-                                        <i class="fas fa-times-circle"></i>
-                                        <!-- You can use any icon for the close button -->
-                                    </button>
-                                </h5>
-                            </div>
+                <div id="accordionslider{{movie_history['torrentId']}}" class="accordion mt-4 bg-dark">
 
-                            <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo"
-                                 data-bs-parent="#accordionslider{{movie_history['torrentId']}}">
-                                <div class="card-body">
-                                    {{movie_history['description']}}
-                                </div>
+                    <div class="accordion-item" style="border: none; box-shadow: 0px 0px 15px 0px cyan;">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed text-white" style="background:#00b3ff;"
+                                    type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#slidercollapse{{movie_history['torrentId']}}" aria-expanded="false"
+                                    aria-controls="collapseTwo">
+                                Description
+                            </button>
+                        </h2>
+                        <div id="slidercollapse{{movie_history['torrentId']}}" class="accordion-collapse collapse"
+                             aria-labelledby="headingTwo"
+                             data-bs-parent="#accordionslider{{movie_history['torrentId']}}">
+                            <div class="accordion-body" style="background:#031923">
+                                {{movie_history['description']}}
                             </div>
                         </div>
                     </div>
+
                 </div>
                 {% endif %}
             </div>
@@ -270,9 +305,9 @@
                                             </span>
                         </button>
                         <button type="button" class="btn btn-danger" title="Cancel and delete torrent"
-                                            id="cancel_btn_divslider{{movie_history['torrentId']}}"
-                                            onclick="location.href='{{url_for('cancel_download', torrent_id = movie_history['torrentId'])}}'">
-                                        <i class="fa fa-trash" aria-hidden="true"></i>
+                                id="cancel_btn_divslider{{movie_history['torrentId']}}"
+                                onclick="location.href='{{url_for('cancel_download', torrent_id = movie_history['torrentId'])}}'">
+                            <i class="fa fa-trash" aria-hidden="true"></i>
                         </button>
                         {% for file in movie_history['files'] %}
                         <button type="button" class="btn btn-primary flex-fill"
@@ -287,8 +322,10 @@
                         <button type="button" id="convertslider{{ movie_history['torrentId'] }}"
                                 onclick="location.href='{{url_for('convert_video', torrent_id = movie_history['torrentId'] )}}'; get_conversion_status(torrent_id = {{movie_history['torrentId'] }});"
                                 class="btn btn-success flex-fill me-2">
-                            <i id="converticonslider{{movie_history['torrentId']}}" class="fa fa-repeat" aria-hidden="true"></i>
-                            <svg id="convertspinnerslider{{movie_history['torrentId']}}" class="ms-2" style="filter:invert(1)"
+                            <i id="converticonslider{{movie_history['torrentId']}}" class="fa fa-repeat"
+                               aria-hidden="true"></i>
+                            <svg id="convertspinnerslider{{movie_history['torrentId']}}" class="ms-2"
+                                 style="filter:invert(1)"
                                  width="24" height="24"
                                  viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <style>
@@ -301,7 +338,8 @@
                         </button>
                         <button type="button"
                                 onclick="location.href='{{ url_for('download_torrent_to_client_device', torrent_id= movie_history['torrentId'] ) }}'"
-                                id="downloadslider{{ movie_history['torrentId'] }}" class="btn btn-warning flex-fill me-2">
+                                id="downloadslider{{ movie_history['torrentId'] }}"
+                                class="btn btn-warning flex-fill me-2">
                             <i
                                     class="fa fa-download me-2" aria-hidden="true"></i>
                             <i class="fa me-2" aria-hidden="true">&#xf10b;</i>

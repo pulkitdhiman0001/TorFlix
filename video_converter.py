@@ -5,39 +5,6 @@ import os
 from models import create_app, db, Torrents, DownloadedTorrentList, Files
 
 
-# def convert_to_mp4(input_path, output_path, torrent_id):
-#     get_torrent = DownloadedTorrentList.query.filter_by(torrent_id=torrent_id).first()
-#     get_files = Files.query.filter_by(torrent_fk=get_torrent.id).first()
-#     try:
-#         cmd = [
-#             'ffmpeg',
-#             '-i', input_path,  # Input file path
-#
-#             '-c:v', 'h264_nvenc',  # NVIDIA NVENC H.264 (AVC) hardware encoder
-#             '-pix_fmt', 'yuv420p',  # Standard pixel format for compatibility
-#             '-preset', 'fast',  # Adjust the preset for speed/quality balance
-#
-#             '-c:a', 'aac',  # AAC audio codec for wide compatibility
-#             '-strict', 'experimental',  # Required for AAC audio codec
-#             '-b:a', '192k',  # Adjust audio bitrate as needed
-#
-#             '-movflags', '+faststart',  # Move MOOV atom to the beginning for streaming
-#             output_path,
-#         ]
-#
-#         # Run the FFmpeg command
-#         subprocess.run(cmd, check=True)
-#
-#         update_file_path = output_path
-#         get_files.file_path = update_file_path
-#
-#         db.session.commit()
-#
-#         print("Conversion complete.")
-#     except subprocess.CalledProcessError as e:
-#         print(f"An error occurred: {e}")
-
-
 def convert_to_mp4(input_path, output_path, torrent_id):
     get_torrent = DownloadedTorrentList.query.filter_by(torrent_id=torrent_id).first()
     get_torrent_form_torrents = Torrents.query.filter_by(torrent_id=torrent_id).first()

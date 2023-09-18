@@ -237,7 +237,7 @@ nav .search-icon{
 
 
 }
-@media (max-width: 1380px){
+@media (max-width: 1440px){
   nav{
     padding: 0px;
   }
@@ -526,11 +526,9 @@ nav .logo.space{
   padding: 5px;
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-around;
+
+  justify-content:center;
 }
-
-
-
 
 
 
@@ -583,6 +581,49 @@ nav .logo.space{
 }
 
 
+.torrent-details{
+    justify-content: space-around;
+}
+
+
+.torrent-details .card-header, .card-body{
+    justify-content: center;
+}
+
+.torrent-details .card:first-child{
+box-shadow: 0px 0px 30px 0px red;
+}
+
+.torrent-details .card:nth-child(2){
+box-shadow: 0px 0px 30px 0px green;
+}
+
+.torrent-details .card:nth-child(3){
+box-shadow: 0px 0px 30px 0px cyan;
+}
+.torrent-details .card:nth-child(4){
+box-shadow: 0px 0px 30px 0px var(--bs-pink);
+}
+
+.torrent-info{
+    justify-content: space-around;
+    display: inline-flex;
+}
+
+.torrent-info .card:first-child{
+box-shadow: 0px 0px 20px 0px red;
+margin-right:5px;
+}
+
+.torrent-info .card:nth-child(2){
+box-shadow: 0px 0px 20px 0px green;
+margin-right:5px;
+}
+
+
+.torrent-info .card:nth-child(3){
+box-shadow: 0px 0px 20px 0px blue;
+}
 
  table {
       width: 100%;

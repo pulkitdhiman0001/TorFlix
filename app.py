@@ -84,41 +84,43 @@ def logout():
 
 @app.route('/register_admin', methods=['GET', 'POST'])
 def register_admin():
-    if 'username' in session and session["role"] == "admin":
-        email_regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
-        if request.method == 'POST':
+    # if 'username' in session and session["role"] == "admin":
+    email_regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
+    if request.method == 'POST':
 
-            userpass = request.form["password"]
+        userpass = request.form["password"]
 
-            confirm_userpass = request.form["confirm_password"]
-            hash_pass = generate_password_hash(userpass)
-            if not re.match(email_regex, request.form["email"]):
-                flash("Invalid Email", category='error')
-                return render_template(Templates.register_admin)
+        confirm_userpass = request.form["confirm_password"]
+        hash_pass = generate_password_hash(userpass)
+        if not re.match(email_regex, request.form["email"]):
+            flash("Invalid Email", category='error')
+            return render_template(Templates.register_admin)
 
-            add_new_user = Admins(username=request.form["username"], email=request.form["email"],
-                                  password=hash_pass, role="admin", otp=None, otp_flag=False,
-                                  otp_expires_at=None)
-            exists = db.session.query(db.exists().where(
-                Users.username == request.form["username"])).scalar()
-            if exists:
-                flash("User with same username already exists", category='error')
-                return render_template(Templates.register_admin)
-            if userpass != confirm_userpass:
-                flash("Password does not match", category='error')
-                return render_template(Templates.register_admin)
-            pass_regex = r"^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$"
-            if not re.match(pass_regex, userpass):
-                flash("Password must contain Minimum eight characters, at least one letter and one number:",
-                      category='error')
-                return render_template(Templates.register_admin)
-            else:
-                db.session.add(add_new_user)
-                db.session.commit()
-                flash('Verify OTP', category='success')
-                return redirect(url_for('admin_login'))
-        return render_template(Templates.register_admin)
-    return render_template(Templates.admin_login)
+        add_new_user = Admins(username=request.form["username"], email=request.form["email"],
+                              password=hash_pass, role="admin", otp=None, otp_flag=False,
+                              otp_expires_at=None)
+        exists = db.session.query(db.exists().where(
+            Users.email == request.form["email"])).scalar()
+        if exists:
+            flash("User with same username already exists", category='error')
+            return render_template(Templates.register_admin)
+        if userpass != confirm_userpass:
+            flash("Password does not match", category='error')
+            return render_template(Templates.register_admin)
+        pass_regex = r"^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$"
+        if not re.match(pass_regex, userpass):
+            flash("Password must contain Minimum eight characters, at least one letter and one number:",
+                  category='error')
+            return render_template(Templates.register_admin)
+        else:
+            db.session.add(add_new_user)
+            db.session.commit()
+            flash('Verify OTP', category='success')
+            return redirect(url_for('admin_login'))
+    return render_template(Templates.register_admin)
+
+
+# return render_template(Templates.admin_login)
 
 
 @app.route('/register_user', methods=['GET', 'POST'])
@@ -408,6 +410,17 @@ def index():
     return render_template('index.html', movie_list=movie_list, title="Trending")
 
 
+# from badge_torrent_filter import badge_filter_torrents
+
+@app.route('/torrents/<string:badge>', methods=['GET', 'POST'])
+def badge_torrents(badge):
+    if "username" in session:
+        get_trending = torrents.trending()
+        items = get_trending["items"]
+        movie_list = get_torrent_details(torrents=torrents, badge=badge, items=items)
+        return render_template('index.html', movie_list=movie_list, title=badge.capitalize())
+    return redirect(url_for('user_login'))
+
 @app.route('/search/<int:page_no>', methods=['GET', 'POST'])
 def search_torrents(page_no=1):
     if "username" in session:
@@ -448,8 +461,6 @@ def search_torrents(page_no=1):
     return render_template('index.html', page_no=page_no, search=search, input_search_by_user=input_search_by_user,
                            movie_list=movie_list,
                            title=request.args['search'])
-
-
 
 
 @app.route('/download/<string:magnet_link>/<int:torrent_id>', methods=['GET', 'POST'])
@@ -869,6 +880,24 @@ def global_downloads():
         #     search["user_id"] = torrent_id.user_id
         #     movie_list.append(search)
 
+        recommendation = []
+
+        for torrent in get_list_of_downloaded_torrents:
+            torrent_info = torrents.info(torrentId=torrent.torrent_id)
+            recommend = torrents.trending(category=torrent_info["category"])
+            items = recommend["items"]
+
+            for movie in get_torrent_details(items, torrents, category=torrent_info["category"]):
+                recommendation.append(movie)
+        print(recommendation, len(recommendation))
+        # items = recommend["items"]
+        # for movie in items:
+        #     recommendation.append(movie)
+        # recommendation = get_torrent_details(items=items, torrents=torrents, category=torrent_info["category"])
+        # recommendation.append(movie_list)
+        # items = trending["items"]
+        # print(recommendation, len(recommendation))
+
         movie_list = []
         # movie_list_for_torrent_with_multiple_files = []
 
@@ -893,9 +922,10 @@ def global_downloads():
             search.update({'files': files})
             #     # search["files" + str(downloaded_torrents.torrent_id)].sort()
 
-        print(movie_list)
+        # print(movie_list)
 
-        return render_template('my_list.html', movie_list=movie_list, get_user_identity=get_user_identity,
+        return render_template('my_list.html', movie_list=movie_list, recommendation=recommendation,
+                               get_user_identity=get_user_identity,
                                downloading=downloading, torrent_history=torrent_history, title="Global Downloads")
     flash("Login Required", category="error")
     return redirect(url_for('user_login'))
@@ -918,6 +948,17 @@ def my_list():
         get_list_of_downloaded_torrents = DownloadedTorrentList.query.filter_by(user_id=get_user_identity.id).all()
 
         get_torrent_ids = []
+
+        recommendation = []
+
+        for torrent in get_list_of_downloaded_torrents:
+            torrent_info = torrents.info(torrentId=torrent.torrent_id)
+            recommend = torrents.trending(category=torrent_info["category"])
+            items = recommend["items"]
+
+            for movie in get_torrent_details(items, torrents, category=torrent_info["category"]):
+                recommendation.append(movie)
+        print(recommendation, len(recommendation))
 
         movie_list = []
         # movie_list_for_torrent_with_multiple_files = []
@@ -945,7 +986,7 @@ def my_list():
 
         print(movie_list)
         return render_template(Templates.my_list, movie_list=movie_list, get_user_identity=get_user_identity,
-                               downloading=downloading,
+                               downloading=downloading, recommendation=recommendation,
                                torrent_history=torrent_history, title="My List")
     flash("Login Required", category="error")
     return redirect(url_for('user_login'))
@@ -1072,7 +1113,8 @@ def watch_download_torrents(torrent_id, file_id):
                                    torrent_history=torrent_history, get_user_identity=get_user_identity,
                                    mimetype='video/mp4')
 
-        return render_template('playvideo.html',new_file_name=new_file_name, file_path=file_path, downloading=downloading,
+        return render_template('playvideo.html', new_file_name=new_file_name, file_path=file_path,
+                               downloading=downloading,
                                get_torrent=get_torrent, audio_torrent_info=audio_torrent_info, movie_list=movie_list,
                                torrent_history=torrent_history, get_user_identity=get_user_identity, mimetype='video'
                                                                                                               '/mp4')
@@ -1121,4 +1163,4 @@ def get_download_status(torrent_id):
 
 
 if __name__ == '__main__':
-    app.run(port=5000, host='0.0.0.0', threaded=True)
+    app.run(port=5000, host='0.0.0.0', debug=True, threaded=True)
