@@ -207,8 +207,8 @@
                         <div class="card-body">
 
                             {% for genre in movie_history['genre'] %}<span style="cursor:pointer"
-                                                                   class="badge bg-light text-dark ms-2"
-                                                                   onclick="location.href='{{url_for('badge_torrents', badge= genre)}}'">{{ genre }}</span>
+                                                                           class="badge bg-light text-dark ms-2"
+                                                                           onclick="location.href='{{url_for('badge_torrents', badge= genre)}}'">{{ genre }}</span>
                             {% endfor %}
 
                         </div>
@@ -296,19 +296,27 @@
                               style="background-image: url(https://media.giphy.com/media/U3qYN8S0j3bpK/giphy.gif)"
                               id="download_progressslider{{movie_history['torrentId']}}"></span>
                         <button type="button"
-                                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border:none"
+                                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; "
                                 class="btn btn-success flex-fill"
                                 id="download_btn_divslider{{movie_history['torrentId']}}"
-                                onclick="location.href='{{url_for('download_torrents', magnet_link = movie_history['magnetLink'], torrent_id = movie_history['torrentId'], torrent_category = movie_history['category'])}}'">
-                                            <span id="download_btnslider{{movie_history['torrentId']}}"
-                                                  style="z-index: 2; position: relative;">Download
-                                            </span>
+                                onclick="location.href='{{url_for('download_torrents', magnet_link = movie_history['magnetLink'], torrent_id = movie_history['torrentId'], torrent_category = movie_history['category'])}}'; $('#download_btnslider{{movie_history['torrentId']}}').html(`<svg class='ms-2' style='filter:invert(1)' width='24' height='24'
+                                     viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
+                                    <style>
+                                        .spinner_0XTQ{transform-origin:center;animation:spinner_y6GP .75s linear infinite}@keyframes spinner_y6GP{100%{transform:rotate(360deg)}}
+                                    </style>
+                                    <path class='spinner_0XTQ'
+                                          d='M12,23a9.63,9.63,0,0,1-8-9.5,9.51,9.51,0,0,1,6.79-9.1A1.66,1.66,0,0,0,12,2.81h0a1.67,1.67,0,0,0-1.94-1.64A11,11,0,0,0,12,23Z'/>
+                                </svg>`);">
+                                        <span id="download_btnslider{{movie_history['torrentId']}}"
+                                              style="z-index: 2; position: relative;">Download</span>
                         </button>
-                        <button type="button" class="btn btn-danger" title="Cancel and delete torrent"
+
+                        <button type="button" class="btn btn-danger ms-3" title="Cancel and delete torrent"
                                 id="cancel_btn_divslider{{movie_history['torrentId']}}"
                                 onclick="location.href='{{url_for('cancel_download', torrent_id = movie_history['torrentId'])}}'">
                             <i class="fa fa-trash" aria-hidden="true"></i>
                         </button>
+
                         {% for file in movie_history['files'] %}
                         <button type="button" class="btn btn-primary flex-fill"
                                 id="watch_btnslider{{movie_history['torrentId']}}"
@@ -322,7 +330,7 @@
                         <button type="button" id="convertslider{{ movie_history['torrentId'] }}"
                                 onclick="location.href='{{url_for('convert_video', torrent_id = movie_history['torrentId'] )}}'; get_conversion_status(torrent_id = {{movie_history['torrentId'] }});"
                                 class="btn btn-success flex-fill me-2">
-                            <i id="converticonslider{{movie_history['torrentId']}}" class="fa fa-repeat"
+                            <i id="converticonslider{{movie_history['torrentId']}}" class="fa fa-wrench"
                                aria-hidden="true"></i>
                             <svg id="convertspinnerslider{{movie_history['torrentId']}}" class="ms-2"
                                  style="filter:invert(1)"
@@ -345,13 +353,7 @@
                             <i class="fa me-2" aria-hidden="true">&#xf10b;</i>
                             <i class="fa fa-desktop" aria-hidden="true"></i>
                         </button>
-                        {% if get_user_identity.id == movie_history["user_id"] %}
-                        <button type="button" id="delete_btnslider{{ movie_history['torrentId'] }}"
-                                class="btn btn-danger flex-fill"
-                                onclick="location.href='{{ url_for('delete_watched_torrent', torrent_id = movie_history['torrentId'], torrent_category = movie_history['category']) }}'">
-                            <i class="fa fa-trash" aria-hidden="true"></i>
-                        </button>
-                        {% endif %}
+
                     </div>
                 </div>
             </div>

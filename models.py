@@ -29,8 +29,9 @@ class Admins(db.Model):
     otp = db.Column(db.String(10))
     otp_flag = db.Column(db.Boolean, default=False)
     otp_expires_at = db.Column(db.String(100))
+    verified = db.Column(db.Boolean, default=False)
 
-    def __init__(self, username, email, password, role, otp, otp_flag, otp_expires_at):
+    def __init__(self, username, email, password, role, otp, otp_flag, otp_expires_at, verified):
         self.username = username
         self.email = email
         self.password = password
@@ -38,6 +39,7 @@ class Admins(db.Model):
         self.otp = otp
         self.otp_flag = otp_flag
         self.otp_expires_at = otp_expires_at
+        self.verified = verified
 
 
 class Users(db.Model):
@@ -136,6 +138,9 @@ class DownloadHistory(db.Model):
     __tablename__ = "DownloadHistory"
     id = db.Column(db.Integer, primary_key=True)
     torrent_id = db.Column(db.Integer)
+    user_id = db.Column(db.Integer, db.ForeignKey('Users.id'))
+    user = db.relationship("Users")
 
-    def __init__(self, torrent_id):
+    def __init__(self, torrent_id, user_id):
         self.torrent_id = torrent_id
+        self.user_id = user_id

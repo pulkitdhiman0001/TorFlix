@@ -237,7 +237,10 @@ nav .search-icon{
 
 
 }
-@media (max-width: 1440px){
+@media (max-width: 1534px){
+
+
+
   nav{
     padding: 0px;
   }
@@ -370,6 +373,9 @@ nav .logo.space{
   }
 
 
+  .content{
+    justify-content: space-evenly !important;
+  }
 
   .sticky {
       z-index:2;
@@ -488,7 +494,7 @@ nav .logo.space{
 .movie-cards:hover{
     border: 3px solid #a8c1d9;
     transition: all 0.1s ease-in;
-    transform: scale(1.1)
+
 
 }
 
@@ -587,7 +593,7 @@ nav .logo.space{
 
 
 .torrent-details .card-header, .card-body{
-    justify-content: center;
+    justify-content: space-evenly;
 }
 
 .torrent-details .card:first-child{
@@ -625,60 +631,6 @@ margin-right:5px;
 box-shadow: 0px 0px 20px 0px blue;
 }
 
- table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      border-radius: 10px; /* Add border radius to the table */
-      overflow: hidden; /* Hide the border-radius overflow */
-
-    }
-
-     th {
-      padding: 10px;
-      text-align: center;
-      color: white; /* Text color for table header */
-    }
-    th:nth-child(1) {
-      background-color: #007bff; /* Blue - Set the background color for Column 1 */
-    }
-    th:nth-child(2) {
-      background-color: #28a745; /* Green - Set the background color for Column 2 */
-    }
-    th:nth-child(3) {
-      background-color: #dc3545; /* Red - Set the background color for Column 3 */
-    }
-    th:nth-child(4) {
-      background-color: #ffc107; /* Yellow - Set the background color for Column 4 */
-      color: black; /* Change the text color for Column 4 */
-    }
-    th:nth-child(5) {
-      background-color: #17a2b8; /* Cyan - Set the background color for Column 5 */
-    }
-    td {
-      padding: 10px;
-      text-align: center;
-    }
-    td:nth-child(1) {
-      background-color: #007bff; /* Blue - Set the same background color for Column 1 */
-      color: white; /* Text color for Column 1 */
-    }
-    td:nth-child(2) {
-      background-color: #28a745; /* Green - Set the same background color for Column 2 */
-      color: white; /* Text color for Column 2 */
-    }
-    td:nth-child(3) {
-      background-color: #dc3545; /* Red - Set the same background color for Column 3 */
-      color: white; /* Text color for Column 3 */
-    }
-    td:nth-child(4) {
-      background-color: #ffc107; /* Yellow - Set the same background color for Column 4 */
-      color: white; /* Text color for Column 4 */
-    }
-    td:nth-child(5) {
-      background-color: #17a2b8; /* Cyan - Set the same background color for Column 5 */
-      color: white; /* Text color for Column 5 */
-    }
 
 
 #accordion {
@@ -777,3 +729,14 @@ background-color: #106079;
 
 }
 
+
+
+/*no results found css*/
+
+.no-result{
+color:yellow;
+}
+
+.no-result:hover{
+    color: cyan;
+}

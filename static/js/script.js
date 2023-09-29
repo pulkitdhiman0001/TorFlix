@@ -1,25 +1,3 @@
-//card = ''
-//function show_card_details(torrent_id){
-//    card_id = $('#torrent_' + torrent_id)
-//    card = '#torrent_' + torrent_id
-//
-//    $(card_id).css({'display':'inline', 'z-index':'2', 'position':'fixed','height':'70%','width':'80%', 'transition':'all .4s'})
-//    $('.card-details').hide();
-//     $(card_id).show();
-//    console.log(torrent_id)
-//
-//    }
-//
-//$(document).mouseup(function(e)
-//{
-//    var container = $(card);
-//
-//    if (!container.is(e.target) && container.has(e.target).length === 0)
-//    {
-//        container.hide();
-//        $(card).css({'height':'20%','transition':'all .2s', 'width':'20%', 'display':'none'})
-//    }
-//});
 
 
 function get_conversion_status(torrent_id) {
@@ -143,15 +121,9 @@ function get_conversion_status(torrent_id) {
 }
 
 
+
 function checkifexists(torrent_id, magnet_link){
-//        $('#convert' + torrent_id).hide()
-//        $('#download' + torrent_id).hide()
-//        $('#delete_btn' + torrent_id).hide()
-//        $('#checking' + torrent_id).show()
-//        $('#download_btn_div' + torrent_id).hide()
-//        $('#watch_btn' + torrent_id).hide()
-//        $('#cancel_btn_div' + torrent_id).hide()
-//        $('#download_progress' + torrent_id).hide()
+
         console.log('enter')
         $('#convertindex' + torrent_id).hide()
         $('#downloadindex' + torrent_id).hide()
@@ -261,6 +233,8 @@ function checkifexists(torrent_id, magnet_link){
         }
 
          if (text.condition == false){
+
+
             $('#watch_btnindex' + torrent_id).hide()
             $('#watch_btnslider' + torrent_id).hide()
             $('#watch_btndslider' + torrent_id).hide()
@@ -283,6 +257,8 @@ function checkifexists(torrent_id, magnet_link){
 
 //                $('#download_btn_div' + torrent_id).show()
             if(text.percentage != 100){
+
+
 
                    const intervalId = setInterval(function call() {
 
@@ -344,11 +320,9 @@ function checkifexists(torrent_id, magnet_link){
                     $('#download_btnmylistformultiplefiles' + torrent_id).text(text.download_details)
 
                     if(text.status == "Downloading"){
-                        $('#download_btn_divindex' + torrent_id).css({'margin-right':'20px'})
-                        $('#download_btn_divslider' + torrent_id).css({'margin-right':'20px'})
-                        $('#download_btn_divdslider' + torrent_id).css({'margin-right':'20px'})
-                        $('#download_btn_divmylist' + torrent_id).css({'margin-right':'20px'})
-                        $('#download_btn_divmylistformultiplefiles' + torrent_id).css({'margin-right':'20px'})
+
+
+                        if(text.user_id == text.session_id){
 
                         $('#cancel_btn_divindex' + torrent_id).show()
                         $('#cancel_btn_divslider' + torrent_id).show()
@@ -356,9 +330,12 @@ function checkifexists(torrent_id, magnet_link){
                         $('#cancel_btn_divmylist' + torrent_id).show()
                         $('#cancel_btn_divmylistformultiplefiles' + torrent_id).show()
                         console.log("in")
+                        }
                     }
 
+
                     if(text.percentage == 100){
+
                         $('#download_btn_divindex' + torrent_id).hide()
                         $('#download_btn_divslider' + torrent_id).hide()
                         $('#download_btn_divdslider' + torrent_id).hide()
@@ -406,16 +383,16 @@ function checkifexists(torrent_id, magnet_link){
                         $('#watch_btndslider' + torrent_id).show()
                         $('#watch_btnmylist' + torrent_id).show()
 
+                        if(text.user_id == text.session_id){
+
                         $('#delete_btnindex' + torrent_id).show()
                         $('#delete_btnslider' + torrent_id).show()
                         $('#delete_btndslider' + torrent_id).show()
                         $('#delete_btnmylist' + torrent_id).show()
                         $('#delete_btnmylistformultiplefiles' + torrent_id).show()
+                        }
 
-//                        $('#watch_btn' + torrent_id).css({'border-top-left-radius':'27px', 'border-bottom-left-radius':'27px'})
-//                        clearInterval(intervalId);
-
-                        return get_conversion_status(torrent_id);
+//                        return get_conversion_status(torrent_id);
 
                     }
 
@@ -434,9 +411,6 @@ function checkifexists(torrent_id, magnet_link){
          }
       })
 }
-
-
-
 
 
 

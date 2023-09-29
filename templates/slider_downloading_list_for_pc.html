@@ -298,14 +298,22 @@
                                   style="background-image: url(https://media.giphy.com/media/U3qYN8S0j3bpK/giphy.gif)"
                                   id="download_progressdslider{{dmovie['torrentId']}}"></span>
                             <button type="button"
-                                    style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border:none"
+                                    style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; "
                                     class="btn btn-success flex-fill"
                                     id="download_btn_divdslider{{dmovie['torrentId']}}"
-                                    onclick="location.href='{{url_for('download_torrents', magnet_link = dmovie['magnetLink'], torrent_id = dmovie['torrentId'], torrent_category = dmovie['category'])}}'">
-                                            <span id="download_btndslider{{dmovie['torrentId']}}"
-                                                  style="z-index: 2; position: relative;">Download</span>
+                                    onclick="location.href='{{url_for('download_torrents', magnet_link = dmovie['magnetLink'], torrent_id = dmovie['torrentId'], torrent_category = dmovie['category'])}}'; $('#download_btndslider{{dmovie['torrentId']}}').html(`<svg class='ms-2' style='filter:invert(1)' width='24' height='24'
+                                     viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
+                                    <style>
+                                        .spinner_0XTQ{transform-origin:center;animation:spinner_y6GP .75s linear infinite}@keyframes spinner_y6GP{100%{transform:rotate(360deg)}}
+                                    </style>
+                                    <path class='spinner_0XTQ'
+                                          d='M12,23a9.63,9.63,0,0,1-8-9.5,9.51,9.51,0,0,1,6.79-9.1A1.66,1.66,0,0,0,12,2.81h0a1.67,1.67,0,0,0-1.94-1.64A11,11,0,0,0,12,23Z'/>
+                                </svg>`);">
+                                        <span id="download_btndslider{{dmovie['torrentId']}}"
+                                              style="z-index: 2; position: relative;">Download</span>
                             </button>
-                            <button type="button" class="btn btn-danger" title="Cancel and delete torrent"
+
+                            <button type="button" class="btn btn-danger ms-3" title="Cancel and delete torrent"
                                     id="cancel_btn_divdslider{{dmovie['torrentId']}}"
                                     onclick="location.href='{{url_for('cancel_download', torrent_id = dmovie['torrentId'])}}'">
                                 <i class="fa fa-trash" aria-hidden="true"></i>
@@ -321,15 +329,9 @@
                         <div class="btn-group" role="group" id="operationsdslider{{dmovie['torrentId']}}">
                             <button type="button" id="convertdslider{{dmovie['torrentId']}}"
                                     class="btn btn-success flex-fill me-2"><i
-                                    class="fa fa-repeat" aria-hidden="true"></i></button>
+                                    class="fa fa-wrench" aria-hidden="true"></i></button>
 
-                            {% if get_user_identity.id == dmovie["user_id"] %}
-                            <button id="delete_btndslider{{dmovie['torrentId']}}" type="button"
-                                    class="btn btn-danger flex-fill"
-                                    onclick="location.href='{{url_for('delete_watched_torrent', torrent_id = dmovie['torrentId'], torrent_category = dmovie['category'])}}'">
-                                <i class="fa fa-trash" aria-hidden="true"></i>
-                            </button>
-                            {% endif %}
+
                         </div>
                     </div>
                 </div>

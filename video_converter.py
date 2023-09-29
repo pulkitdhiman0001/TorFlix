@@ -47,7 +47,6 @@ def convert_to_mp4(input_path, output_path, torrent_id):
                 time_str = line.split("time=")[1].split()[0]
                 current_time = parse_time(time_str)
                 progress_percentage = (current_time / total_duration) * 100
-                print(f"Conversion Progress: {progress_percentage:.2f}%")
 
                 if get_torrent_form_torrents:
                     get_torrent_form_torrents.conversion_details = f"Processing for your device: {progress_percentage:.2f}%"

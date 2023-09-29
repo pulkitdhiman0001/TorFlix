@@ -5,12 +5,14 @@ def get_torrent_details(items, torrents, category=None, badge=None):
     movie_list = []
 
     for movie in items:
+        link = torrents.info(link=f'{movie["link"]}')
         get_downloaded_torrent = DownloadedTorrentList.query.filter_by(torrent_id=movie['torrentId']).first()
         if badge:
-            link = torrents.info(link=f'{movie["link"]}')
 
             if link['genre'] == "badge":
-                if not get_downloaded_torrent and not category == "XXX":
+                if not get_downloaded_torrent and not link["category"] == "XXX" and not link[
+                                                                                            "category"] == "Games" and not \
+                        link["category"] == "Apps":
 
                     movie['thumbnail'] = link["thumbnail"]
                     movie['description'] = link['description']
@@ -20,12 +22,6 @@ def get_torrent_details(items, torrents, category=None, badge=None):
 
                     else:
                         movie['ss'] = link["images"]
-
-                    # if link['description'] is None:
-                    #     movie['description'] = 'None'
-                    #
-                    # else:
-                    #     movie['description'] = link['description']
 
                     if link['magnetLink'] is None:
                         movie['magnetLink'] = 'none'
@@ -45,9 +41,6 @@ def get_torrent_details(items, torrents, category=None, badge=None):
                     else:
                         movie['type'] = link['type']
 
-
-
-
                     if link['language'] is None:
                         movie['language'] = '----'
 
@@ -55,7 +48,8 @@ def get_torrent_details(items, torrents, category=None, badge=None):
                         movie['language'] = link['language']
                         movie_list.append(movie)
 
-        if not get_downloaded_torrent and not category == "XXX":
+        if not get_downloaded_torrent and not link["category"] == "XXX" and not link["category"] == "Games" and not \
+                link["category"] == "Apps":
             link = torrents.info(link=f'{movie["link"]}')
 
             movie['thumbnail'] = link["thumbnail"]
@@ -66,12 +60,6 @@ def get_torrent_details(items, torrents, category=None, badge=None):
 
             else:
                 movie['ss'] = link["images"]
-
-            # if link['description'] is None:
-            #     movie['description'] = 'None'
-            #
-            # else:
-            #     movie['description'] = link['description']
 
             if link['magnetLink'] is None:
                 movie['magnetLink'] = 'none'
@@ -90,8 +78,6 @@ def get_torrent_details(items, torrents, category=None, badge=None):
 
             else:
                 movie['type'] = link['type']
-
-
 
             if link['language'] is None:
                 movie['language'] = '----'

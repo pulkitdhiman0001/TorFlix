@@ -22,16 +22,17 @@
 
     <div class="login-box">
         <h1>Sign In</h1>
-        <!--        <input type="email" placeholder="Email" class="login-input" required>-->
+
         <form action="{{url_for('user_login')}}" method="post">
 
-            <input placeholder="Email" type="email" name="email" class="login-input" required>
-            <input type="password" placeholder="Password" name="password" class="login-input" required>
+            <input placeholder="Email" type="email" name="email" class="login-input" id="user_email" required>
+            <input type="password" placeholder="Password" name="password" class="login-input" id="user_pass" required>
             <button class="login-button bg-danger" id="sign_in"
-                    onclick="function sign_in(){document.getElementById('sign_in_loader').style.display = 'inherit'; const intervalId = setInterval(function hide_loader() {document.getElementById('sign_in_loader').style.display = 'none'}, 11000); }sign_in()">
+                    onclick="check_credentials()">
                 Sign In
 
-                <svg class="ms-2" id="sign_in_loader" style="filter:invert(1); display:none" width="24" height="24"
+
+                <svg class="ms-2" id="sign_in_loader" style="filter:invert(1);" width="24" height="24"
                      viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <style>
                         .spinner_0XTQ{transform-origin:center;animation:spinner_y6GP .75s linear infinite}@keyframes spinner_y6GP{100%{transform:rotate(360deg)}}
@@ -60,4 +61,23 @@
     </div>
 </div>
 
+
+{% block script %}
+<script>
+    spinner = $('#sign_in_loader').hide()
+    function check_credentials(){
+        user_email = $('#user_email').val();
+        user_pass = $('#user_pass').val();
+
+
+
+        if (!(user_email === "" || user_pass === "")){
+
+            spinner.show();
+
+        }
+
+    }
+</script>
+{% endblock %}
 {% endblock %}

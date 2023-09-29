@@ -36,18 +36,21 @@ def page_not_found(e):
 @app.route('/admin_login', methods=['GET', 'POST'])
 def admin_login():
     if 'username' in session:
-        return redirect(url_for('users_list', page=1))
+        return redirect(url_for('users_list'))
     if request.method == 'POST':
         username = request.form["username"]
         password = request.form["password"]
-        for i in Admins.query.all():
-            if i.username == username and check_password_hash(i.password, password):
-                session["username"] = i.username
-                session["role"] = i.role
+
+        admin_exists = Admins.query.filter_by(username=username).first()
+        if admin_exists:
+            if admin_exists.username == username and check_password_hash(admin_exists.password, password):
+                session["username"] = admin_exists.username
+                session["role"] = admin_exists.role
+
                 session.permanent = True
                 app.permanent_session_lifetime = timedelta(minutes=5)
-
-                return redirect(url_for('users_list', page=1))
+                flash(f"Welcome {admin_exists.username}", category='success')
+                return redirect(url_for('users_list'))
 
         flash('Username or password is incorrect', category='error')
         return render_template(Templates.admin_login)
@@ -61,17 +64,23 @@ def user_login():
     if request.method == 'POST':
         email = request.form["email"]
         password = request.form["password"]
-        for i in Users.query.all():
-            if i.email == email and check_password_hash(i.password, password):
-                session["username"] = i.email
-                session["role"] = i.role
+
+        user_exists = Users.query.filter_by(email=email).first()
+        if user_exists:
+            if user_exists.email == email and check_password_hash(user_exists.password, password):
+                session["username"] = user_exists.email
+                session["role"] = user_exists.role
+
                 session.permanent = True
                 app.permanent_session_lifetime = timedelta(minutes=5)
-                flash(f"Welcome {i.email}", category='success')
-                return redirect(url_for('index'))
+                flash(f"Welcome {user_exists.email}", category='success')
 
+                return redirect(url_for('index'))
+            flash('Email or password is incorrect', category='error')
+            return render_template(Templates.user_login)
         flash('Email or password is incorrect', category='error')
         return render_template(Templates.user_login)
+
     return render_template(Templates.user_login)
 
 
@@ -84,10 +93,8 @@ def logout():
 
 @app.route('/register_admin', methods=['GET', 'POST'])
 def register_admin():
-    # if 'username' in session and session["role"] == "admin":
     email_regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
     if request.method == 'POST':
-
         userpass = request.form["password"]
 
         confirm_userpass = request.form["confirm_password"]
@@ -96,14 +103,6 @@ def register_admin():
             flash("Invalid Email", category='error')
             return render_template(Templates.register_admin)
 
-        add_new_user = Admins(username=request.form["username"], email=request.form["email"],
-                              password=hash_pass, role="admin", otp=None, otp_flag=False,
-                              otp_expires_at=None)
-        exists = db.session.query(db.exists().where(
-            Users.email == request.form["email"])).scalar()
-        if exists:
-            flash("User with same username already exists", category='error')
-            return render_template(Templates.register_admin)
         if userpass != confirm_userpass:
             flash("Password does not match", category='error')
             return render_template(Templates.register_admin)
@@ -112,15 +111,36 @@ def register_admin():
             flash("Password must contain Minimum eight characters, at least one letter and one number:",
                   category='error')
             return render_template(Templates.register_admin)
+        get_admin = Admins.query.filter_by(email=request.form["email"]).first()
+        otp_generate = random.randrange(111111, 999999)
+        if get_admin:
+            if not get_admin.verified:
+                get_admin.email = request.form["email"]
+                get_admin.password = hash_pass
+                get_admin.otp = otp_generate
+                now = datetime.datetime.now()
+                current_time = now.strftime("%y-%m-%d %H:%M:%S")
+                get_admin.otp_expires_at = str(
+                    datetime.datetime.strptime(current_time, "%y-%m-%d %H:%M:%S") + timedelta(minutes=5))
+                db.session.commit()
+                send_mail(request.form["email"], role=0)
+                flash("OTP sent to" + ' ' + get_admin.email, category='success')
+                return render_template(Templates.verifyOtp, user=get_admin.email)
+            flash("Email Already in use.", category='error')
+            return render_template(Templates.register_admin)
         else:
+            add_new_user = Admins(email=request.form["email"],
+                                  password=hash_pass, role="user", otp=None, otp_flag=False,
+                                  otp_expires_at=None, verified=False)
             db.session.add(add_new_user)
             db.session.commit()
-            flash('Verify OTP', category='success')
-            return redirect(url_for('admin_login'))
+
+            send_mail(request.form["email"], role=0)
+            flash("OTP sent to" + ' ' + request.form["email"], category='success')
+
+            return render_template(Templates.verifyOtp, user=request.form["email"])
+
     return render_template(Templates.register_admin)
-
-
-# return render_template(Templates.admin_login)
 
 
 @app.route('/register_user', methods=['GET', 'POST'])
@@ -145,7 +165,7 @@ def register_user():
                   category='error')
             return render_template(Templates.register_user)
         get_user = Users.query.filter_by(email=request.form["email"]).first()
-        otp_generate = random.randrange(9999)
+        otp_generate = random.randrange(111111, 999999)
         if get_user:
             if not get_user.verified:
                 get_user.email = request.form["email"]
@@ -168,7 +188,7 @@ def register_user():
             db.session.add(add_new_user)
             db.session.commit()
 
-            send_mail(request.form["email"])
+            send_mail(request.form["email"], role=1)
             flash("OTP sent to" + ' ' + request.form["email"], category='success')
 
             return render_template(Templates.verifyOtp, user=request.form["email"])
@@ -178,89 +198,151 @@ def register_user():
 mail = Mail(app)
 
 
-@app.route('/verify-otp/<string:user_email>', methods=['GET', 'POST'])
-def send_mail(user_email):
+@app.route('/verify-otp/<string:email>/<int:role>', methods=['GET', 'POST'])
+def send_mail(email, role):
     if request.method == 'POST':
 
-        otp_generate = random.randrange(1111, 9999)
+        otp_generate = random.randrange(111111, 999999)
 
         msg = Message("Request for OTP (One Time Password)",
                       sender="testing000123000@gmail.com",
-                      recipients=[user_email])
+                      recipients=[email])
         msg.body = f"Your One Time Password is {otp_generate}"
 
         mail.send(msg)
+        if role == 1:
+            get_user = Users.query.filter_by(email=email).first()
+            if get_user:
+                get_user.otp = otp_generate
+                get_user.otp_flag = False
+                now = datetime.datetime.now()
+                current_time = now.strftime("%y-%m-%d %H:%M:%S")
+                get_user.otp_expires_at = str(
+                    datetime.datetime.strptime(current_time, "%y-%m-%d %H:%M:%S") + timedelta(minutes=5))
 
-        get_user = Users.query.filter_by(email=user_email).first()
-        if get_user:
-            get_user.otp = otp_generate
-            get_user.otp_flag = False
-            now = datetime.datetime.now()
-            current_time = now.strftime("%y-%m-%d %H:%M:%S")
-            get_user.otp_expires_at = str(
-                datetime.datetime.strptime(current_time, "%y-%m-%d %H:%M:%S") + timedelta(minutes=5))
+                db.session.commit()
+                return render_template(Templates.verifyOtp, user=get_user.email)
 
-            db.session.commit()
-            return render_template(Templates.verifyOtp, user=get_user.email)
-
+            else:
+                flash(f"No account found with the E-Mail: {request.form['email']}", category='error')
+                return render_template(Templates.get_email)
         else:
-            flash(f"No account found with the E-Mail: {request.form['email']}", category='error')
-            return render_template(Templates.get_email)
-    return render_template(Templates.forgot_password)
+            get_user = Admins.query.filter_by(email=email).first()
+            if get_user:
+                get_user.otp = otp_generate
+                get_user.otp_flag = False
+                now = datetime.datetime.now()
+                current_time = now.strftime("%y-%m-%d %H:%M:%S")
+                get_user.otp_expires_at = str(
+                    datetime.datetime.strptime(current_time, "%y-%m-%d %H:%M:%S") + timedelta(minutes=5))
+
+                db.session.commit()
+                return render_template(Templates.verifyOtp, user=get_user.email)
+
+            else:
+                flash(f"No account found with the E-Mail: {request.form['email']}", category='error')
+                return render_template(Templates.get_email)
+
+    return render_template(Templates.get_email)
 
 
 @app.route('/generate-new-otp', methods=['GET', 'POST'])
 def generate_new_otp():
-    get_user = Users.query.filter_by(email=request.form["user"]).first()
+    email = request.form["user"]
     if request.method == "POST":
-        otp_generate = random.randrange(11111111, 99999999)
+        otp_generate = random.randrange(111111, 999999)
         msg = Message("Request for OTP (One Time Password)",
                       sender="pulkitdhiman411@gmail.com",
                       recipients=[request.form["user"]])
         msg.body = f"Your One Time Password is {otp_generate}"
         mail.send(msg)
-        get_user.otp = otp_generate
-        get_user.otp_flag = False
 
-        now = datetime.datetime.now()
-        current_time = now.strftime("%y-%m-%d %H:%M:%S")
-        get_user.otp_expires_at = datetime.datetime.strptime(current_time, "%y-%m-%d %H:%M:%S") + timedelta(minutes=5)
+        if request.form["role"] == "1":
+            get_user = Users.query.filter_by(email=request.form["user"]).first()
+            get_user.otp = otp_generate
+            get_user.otp_flag = False
 
-        db.session.commit()
-        flash("Email With New OTP Sent", category='success')
-        return render_template(Templates.verifyOtp, user=get_user.email)
-    return render_template('verifyOtp.html', user=get_user)
+            now = datetime.datetime.now()
+            current_time = now.strftime("%y-%m-%d %H:%M:%S")
+            get_user.otp_expires_at = datetime.datetime.strptime(current_time, "%y-%m-%d %H:%M:%S") + timedelta(
+                minutes=5)
+
+            db.session.commit()
+            flash("Email With New OTP Sent", category='success')
+            return render_template(Templates.verifyOtp, user=get_user.email)
+        else:
+            get_admin = Admins.query.filter_by(email=email).first()
+            get_admin.otp = otp_generate
+            get_admin.otp_flag = False
+
+            now = datetime.datetime.now()
+            current_time = now.strftime("%y-%m-%d %H:%M:%S")
+            get_admin.otp_expires_at = datetime.datetime.strptime(current_time, "%y-%m-%d %H:%M:%S") + timedelta(
+                minutes=5)
+
+            db.session.commit()
+            flash("Email With New OTP Sent", category='success')
+            return render_template(Templates.verifyOtp, user=get_admin.email)
+
+    return render_template(Templates.verifyOtp, user=email)
 
 
 @app.route('/verify_otp', methods=['GET', 'POST'])
 def verify_otp():
     if request.method == "POST":
+        if request.form["role"] == "1":
+            get_user = Users.query.filter_by(email=request.form["user"]).first()
 
-        get_user = Users.query.filter_by(email=request.form["user"]).first()
+            now = datetime.datetime.now()
+            current_time = now.strftime("%y-%m-%d %H:%M:%S")
 
-        now = datetime.datetime.now()
-        current_time = now.strftime("%y-%m-%d %H:%M:%S")
+            db_date_time = datetime.datetime.strptime(str(get_user.otp_expires_at), "%Y-%m-%d %H:%M:%S")
 
-        db_date_time = datetime.datetime.strptime(str(get_user.otp_expires_at), "%Y-%m-%d %H:%M:%S")
+            if get_user.otp != request.form['verify_otp']:
+                flash('Invalid OTP.', category='error')
+                return render_template(Templates.verifyOtp, user=get_user.email)
 
-        if get_user.otp != request.form['verify_otp']:
-            flash('Invalid OTP.', category='error')
-            return render_template(Templates.verifyOtp, user=get_user.email)
+            if get_user.otp_flag is True:
+                flash('OTP already used.', category='error')
+                return render_template(Templates.verifyOtp, user=get_user.email)
 
-        if get_user.otp_flag is True:
-            flash('OTP already used.', category='error')
-            return render_template(Templates.verifyOtp, user=get_user.email)
+            if datetime.datetime.strptime(current_time, "%y-%m-%d %H:%M:%S") > db_date_time:
+                flash('OTP seems to be Expired.', category='error')
+                return render_template(Templates.verifyOtp, user=get_user.email)
 
-        if datetime.datetime.strptime(current_time, "%y-%m-%d %H:%M:%S") > db_date_time:
-            flash('OTP seems to be Expired.', category='error')
-            return render_template(Templates.verifyOtp, user=get_user.email)
+            else:
+                get_user.otp_flag = True
+                get_user.verified = True
+                db.session.commit()
+                flash('Account Created Successfully.', category='success')
+                return render_template(Templates.user_login)
 
         else:
-            get_user.otp_flag = True
-            get_user.verified = True
-            db.session.commit()
-            flash('Account Created Successfully.', category='success')
-            return render_template(Templates.user_login)
+            get_admin = Admins.query.filter_by(email=request.form["user"]).first()
+
+            now = datetime.datetime.now()
+            current_time = now.strftime("%y-%m-%d %H:%M:%S")
+
+            db_date_time = datetime.datetime.strptime(str(get_admin.otp_expires_at), "%Y-%m-%d %H:%M:%S")
+
+            if get_admin.otp != request.form['verify_otp']:
+                flash('Invalid OTP.', category='error')
+                return render_template(Templates.verifyOtp, user=get_admin.email)
+
+            if get_admin.otp_flag is True:
+                flash('OTP already used.', category='error')
+                return render_template(Templates.verifyOtp, user=get_admin.email)
+
+            if datetime.datetime.strptime(current_time, "%y-%m-%d %H:%M:%S") > db_date_time:
+                flash('OTP seems to be Expired.', category='error')
+                return render_template(Templates.verifyOtp, user=get_admin.email)
+
+            else:
+                get_admin.otp_flag = True
+                get_admin.verified = True
+                db.session.commit()
+                flash('Account Created Successfully.', category='success')
+                return redirect(url_for('admin_login'))
 
     return render_template(Templates.verifyOtp)
 
@@ -272,7 +354,7 @@ def send_mail_for_password_reset(user_email):
         get_user = Users.query.filter_by(email=user_email).first()
 
         if get_user:
-            otp_generate = random.randrange(9999)
+            otp_generate = random.randrange(111111, 999999)
 
             msg = Message("Request for OTP (One Time Password)",
                           sender="testing000123000@gmail.com",
@@ -349,7 +431,7 @@ def get_email():
 def password_reset():
     if request.method == "POST":
         get_user = Users.query.filter_by(email=request.form["user"]).first()
-        print(get_user)
+
         new_password = request.form["new_password"]
         confirm_password = request.form["confirm_password"]
 
@@ -369,20 +451,48 @@ def password_reset():
     return render_template(Templates.reset_password)
 
 
+torrents = py1337x(cache='py1337xCache')
+
+
 @app.route('/users_list', methods=['GET', 'POST'])
 def users_list():
     if 'username' in session and session["role"] == "admin":
         get_users = Users.query.all()
-        return render_template(Templates.users_list, get_users=get_users)
-    return redirect(Templates.page_no_found)
 
+        final_list = []
+        for user in get_users:
+            user = Users.query.filter_by(id=user.id).first()
+            movie = {"user_id": user.id, "movie_list": {}}
 
-torrents = py1337x(cache='py1337xCache')
+            if user:
+                get_user_downloaded_content = DownloadedTorrentList.query.filter_by(user_id=user.id).all()
+
+                if len(get_user_downloaded_content) > 0:
+
+                    for content in get_user_downloaded_content:
+                        torrent_info = torrents.info(torrentId=content.torrent_id)
+
+                        if torrent_info["category"] not in movie["movie_list"]:
+                            movie["movie_list"][torrent_info["category"]] = []
+
+                            # Append the movie to the corresponding category list
+                        movie["movie_list"][torrent_info["category"]].append(torrent_info)
+
+                    final_list.append(movie)
+                else:
+                    movie.update({"movie_list": {}})
+                    final_list.append(movie)
+
+        return render_template(Templates.users_list, get_users=get_users, final_list=final_list,
+                               )
+
+    flash("Session Expired", category="error")
+    return render_template(Templates.admin_login)
 
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    if "username" in session:
+    if "username" in session and session["role"] == "user":
         download_torrents_history = DownloadHistory.query.order_by(desc(DownloadHistory.id)).all()
         download_in_progress = Torrents.query.filter_by(status="Downloading").all()
         get_user_identity = Users.query.filter_by(email=session["username"]).first()
@@ -390,7 +500,7 @@ def index():
                                   get_user_identity=get_user_identity.id)
 
         downloading = currently_downloading(download_in_progress, torrents, DownloadedTorrentList,
-                                            get_user_identity=get_user_identity.id)
+                                            get_user_identity=get_user_identity.email)
 
         trending = torrents.trending(week=True)
 
@@ -399,7 +509,7 @@ def index():
         movie_list = get_torrent_details(items, torrents)
 
         return render_template('index.html', movie_list=movie_list, torrent_history=torrent_history,
-                               downloading=downloading, title="Trending", get_user_identity=get_user_identity.id)
+                               downloading=downloading, title="Trending", get_user_identity=get_user_identity.email)
 
     trending = torrents.trending(week=True)
 
@@ -410,9 +520,7 @@ def index():
     return render_template('index.html', movie_list=movie_list, title="Trending")
 
 
-# from badge_torrent_filter import badge_filter_torrents
-
-@app.route('/torrents/<string:badge>', methods=['GET', 'POST'])
+@app.route('/torrents/category=<string:badge>', methods=['GET', 'POST'])
 def badge_torrents(badge):
     if "username" in session:
         get_trending = torrents.trending()
@@ -421,7 +529,8 @@ def badge_torrents(badge):
         return render_template('index.html', movie_list=movie_list, title=badge.capitalize())
     return redirect(url_for('user_login'))
 
-@app.route('/search/<int:page_no>', methods=['GET', 'POST'])
+
+@app.route('/search/page=<int:page_no>', methods=['GET', 'POST'])
 def search_torrents(page_no=1):
     if "username" in session:
 
@@ -469,12 +578,12 @@ def download_torrents(magnet_link, torrent_id):
 
         check_if_exists_in_torrents = Torrents.query.filter_by(torrent_id=torrent_id).first()
 
-        print(check_if_exists_in_torrents, 'check_if_exists_in_downloaded_torrents')
-
+        get_user_identity = Users.query.filter_by(email=session["username"]).first()
         if not check_if_exists_in_torrents:
             check_if_torrent_exists_in_history = DownloadHistory.query.filter_by(torrent_id=torrent_id).first()
             if not check_if_torrent_exists_in_history:
-                add_downloaded_torrent_to_download_history = DownloadHistory(torrent_id=torrent_id)
+                add_downloaded_torrent_to_download_history = DownloadHistory(torrent_id=torrent_id,
+                                                                             user_id=get_user_identity.id)
                 db.session.add(add_downloaded_torrent_to_download_history)
                 db.session.commit()
 
@@ -488,28 +597,19 @@ def download_torrents(magnet_link, torrent_id):
             ses = lt.session()
             ses.listen_on(6881, 6891)
             params = {
-                # 'save_path': os.path.join('static', 'downloadedTemp', str(get_torrent['name'])),
+
                 'save_path': os.path.join('static', 'downloadedTemp', str(session["username"]), str(torrent_id)),
                 'storage_mode': lt.storage_mode_t(2),
-                # 'paused': False,
-                # 'auto_managed': True,
-                # 'duplicate_is_error': True
-            }
 
-            print(link, get_torrent['name'], '+++++++++++++++++++++++++++++++', get_torrent)
+            }
 
             handle = lt.add_magnet_uri(ses, link, params)
             ses.start_dht()
 
             begin = time.time()
-            print(datetime.datetime.now())
 
-            print('Downloading Metadata...')
             while not handle.has_metadata():
                 time.sleep(1)
-            print('Got Metadata, Starting Torrent Download...')
-
-            print("Starting", handle.name())
 
             check_if_torrent_exists = Torrents.query.filter_by(torrent_id=torrent_id).first()
 
@@ -531,14 +631,10 @@ def download_torrents(magnet_link, torrent_id):
 
                 state_str = ['queued', 'checking', 'downloading metadata', 'downloading', 'finished', 'seeding',
                              'allocating']
-                # print('%.2f%% complete (down: %.1f kb/s up: %.1f kB/s peers: %d) %s ' % \
-                #       (s.progress * 100, s.download_rate / 1000, s.upload_rate / 1000, s.num_peers, state_str[s.state]))
 
                 percentage = '%.2f%% complete (down: %.1f kb/s up: %.1f kB/s peers: %d) %s ' % \
                              (s.progress * 100, s.download_rate / 1000, s.upload_rate / 1000, s.num_peers,
                               state_str[s.state])
-
-                print(percentage)
 
                 get_torrent = Torrents.query.filter_by(torrent_id=torrent_id).first()
                 if get_torrent:
@@ -549,7 +645,6 @@ def download_torrents(magnet_link, torrent_id):
                 else:
                     get_torrent.download_percentage = 0.0
                     db.session.commit()
-
                 time.sleep(5)
 
             end = time.time()
@@ -559,12 +654,6 @@ def download_torrents(magnet_link, torrent_id):
 
             db.session.commit()
 
-            print(handle.name(), "COMPLETE")
-
-            print("Elapsed Time: ", int((end - begin) // 60), "min :", int((end - begin) % 60), "sec")
-            print(datetime.datetime.now())
-
-            print(os.path.join('static', 'downloadedTemp', str(handle.name())))
             get_torrent = torrents.info(torrentId=torrent_id)
 
             if not os.path.exists(
@@ -574,7 +663,6 @@ def download_torrents(magnet_link, torrent_id):
                     os.path.join('static', 'downloadedTorrents', str(session["username"]), str(get_torrent['category']),
                                  str(torrent_id)))
 
-            # source_dir = os.path.join('static', 'downloadedTemp', str(get_torrent['name']), str(handle.name()))
             source_dir = os.path.join('static', 'downloadedTemp', str(session["username"]), str(torrent_id))
             target_dir = os.path.join('static', 'downloadedTorrents', str(session["username"]),
                                       str(get_torrent['category']), str(torrent_id))
@@ -587,27 +675,18 @@ def download_torrents(magnet_link, torrent_id):
             games_apps = ["Games", "Apps"]
 
             if os.path.isdir(source_dir):
-                print('one')
                 if any([x in str(get_torrent["category"]) for x in media]):
-                    print("in media")
-                    # file_names = os.listdir(source_dir)
                     file_count = 0
-                    # for file_name in file_names:
-                    #     if file_name.endswith(
-                    #             ('mkv', 'mp4', 'flac', 'ogg', 'webm', 'flv', 'ogv', 'ogg', 'avi', 'wmv', 'mov',
-                    #              'mp3')):
-                    #         file_count += 1
+
                     media_file_extensions = ['mkv', 'mp4', 'flac', 'ogg', 'webm', 'flv', 'ogv', 'ogg', 'avi', 'wmv',
                                              'mov', 'mp3']
                     for root, dirs, files in os.walk(source_dir):
                         for file in files:
-                            # file_extension = os.path.splitext(file)[1].lower()
                             file_extension = file.split('.')[-1]
                             if file_extension in media_file_extensions:
                                 file_path = os.path.join(root, file)
                                 file_count += 1
 
-                    # if file_count > 1:
                     add_to_downloaded_torrent_list = DownloadedTorrentList(name=str(handle.name()),
                                                                            torrent_id=torrent_id,
                                                                            thumbnail=thumbnail,
@@ -618,58 +697,25 @@ def download_torrents(magnet_link, torrent_id):
                     db.session.add(add_to_downloaded_torrent_list)
                     db.session.commit()
                     downloaded_torrent = DownloadedTorrentList.query.filter_by(torrent_id=torrent_id).first()
-                    # for file_name in file_names:
-                    #     if file_name.endswith(
-                    #             ('mkv', 'mp4', 'flac', 'ogg', 'webm', 'flv', 'ogv', 'ogg', 'avi', 'wmv', 'mov',
-                    #              'mp3')):
+
                     for root, dirs, files in os.walk(source_dir):
                         for file in files:
-                            # file_extension = os.path.splitext(file)[1].lower()
                             file_extension = file.split('.')[-1]
                             if file_extension in media_file_extensions:
                                 file_path = os.path.join(root, file)
                                 shutil.move(os.path.join(file_path), target_dir)
 
-                                # add_file_path_to_db_files = Files(file_path=target_dir + '/' + file_name,
-                                #                                   torrent=downloaded_torrent)
                                 add_file_path_to_db_files = Files(file_path=os.path.join(target_dir, file),
                                                                   torrent=downloaded_torrent)
                                 db.session.add(add_file_path_to_db_files)
                                 db.session.commit()
-                    # get_torrent_form_torrents.downloaded_path = file_path + os.path.join('downloadedTorrents',
-                    #                                                                      str(torrent_category),
-                    #                                                                      str(torrent_id))
 
                     get_torrent_form_torrents.no_of_files = file_count
                     db.session.commit()
                     shutil.rmtree(os.path.join('static', 'downloadedTemp', str(session["username"]), str(torrent_id)))
                     flash(f"'{str(get_torrent['name'])}' Ready To Watch !", category='success')
                     return redirect(url_for('my_list'))
-                    # else:
-                    #     for file_name in file_names:
-                    #         if file_name.endswith(
-                    #                 ('mkv', 'mp4', 'flac', 'ogg', 'webm', 'flv', 'ogv', 'ogg', 'avi', 'wmv', 'mov',
-                    #                  'mp3')):
-                    #             shutil.move(os.path.join(source_dir, file_name), target_dir)
-                    #             final_file_path = final_file_path + target_dir + '/' + file_name
-                    #
-                    #             torrent_downloaded_path = os.path.join('downloadedTorrents', str(torrent_category),
-                    #                                                    str(torrent_id))
-                    #             get_torrent_form_torrents.downloaded_path = torrent_downloaded_path
-                    #             add_to_downloaded_torrent_list = DownloadedTorrentList(name=str(handle.name()),
-                    #                                                                    torrent_id=torrent_id,
-                    #                                                                    thumbnail=thumbnail,
-                    #                                                                    category=torrent_category,
-                    #                                                                    downloaded_path=torrent_downloaded_path,
-                    #                                                                    user_id=get_user_identity.id,
-                    #                                                                    no_of_files=file_count)
-                    #             db.session.add(add_to_downloaded_torrent_list)
-                    #             db.session.commit()
-                    #             get_torrent_form_torrents.no_of_files = file_count
-                    #             db.session.commit()
-                    #     shutil.rmtree(os.path.join('static', 'downloadedTemp', str(get_torrent['name'])))
-                    #     flash(f"'{str(get_torrent['name'])}' Ready To Watch !", category='success')
-                    #     return redirect(url_for('my_list'))
+
                 elif any([x in str(get_torrent["category"]) for x in games_apps]):
                     print("in games_apps")
                     file_names = os.listdir(source_dir)
@@ -697,24 +743,17 @@ def download_torrents(magnet_link, torrent_id):
 
                 if any([x in str(get_torrent["category"]) for x in media]):
                     print("in second media")
-                    # file_names = os.listdir(source_dir)
                     file_count = 0
-                    # for file_name in file_names:
-                    #     if file_name.endswith(
-                    #             ('mkv', 'mp4', 'flac', 'ogg', 'webm', 'flv', 'ogv', 'ogg', 'avi', 'wmv', 'mov',
-                    #              'mp3')):
-                    #         file_count += 1
+
                     media_file_extensions = ['mkv', 'mp4', 'flac', 'ogg', 'webm', 'flv', 'ogv', 'ogg', 'avi', 'wmv',
                                              'mov', 'mp3']
                     for root, dirs, files in os.walk(source_dir):
                         for file in files:
-                            # file_extension = os.path.splitext(file)[1].lower()
                             file_extension = file.split('.')[-1]
                             if file_extension in media_file_extensions:
                                 file_path = os.path.join(root, file)
                                 file_count += 1
 
-                    # if file_count > 1:
                     add_to_downloaded_torrent_list = DownloadedTorrentList(name=str(handle.name()),
                                                                            torrent_id=torrent_id,
                                                                            thumbnail=thumbnail,
@@ -725,10 +764,7 @@ def download_torrents(magnet_link, torrent_id):
                     db.session.add(add_to_downloaded_torrent_list)
                     db.session.commit()
                     downloaded_torrent = DownloadedTorrentList.query.filter_by(torrent_id=torrent_id).first()
-                    # for file_name in file_names:
-                    #     if file_name.endswith(
-                    #             ('mkv', 'mp4', 'flac', 'ogg', 'webm', 'flv', 'ogv', 'ogg', 'avi', 'wmv', 'mov',
-                    #              'mp3')):
+
                     for root, dirs, files in os.walk(source_dir):
                         for file in files:
                             # file_extension = os.path.splitext(file)[1].lower()
@@ -738,41 +774,17 @@ def download_torrents(magnet_link, torrent_id):
                                 file_path = os.path.join(root, file)
                                 shutil.move(os.path.join(file_path), target_dir)
 
-                                # add_file_path_to_db_files = Files(file_path=target_dir + '/' + file_name,
-                                #                                   torrent=downloaded_torrent)
                                 add_file_path_to_db_files = Files(file_path=os.path.join(target_dir, file),
                                                                   torrent=downloaded_torrent)
                                 db.session.add(add_file_path_to_db_files)
                                 db.session.commit()
-                    # get_torrent_form_torrents.downloaded_path = file_path + os.path.join('downloadedTorrents',
-                    #                                                                      str(torrent_category),
-                    #                                                                      str(torrent_id))
 
                     get_torrent_form_torrents.no_of_files = file_count
                     db.session.commit()
                     shutil.rmtree(os.path.join('static', 'downloadedTemp', str(session["username"]), str(torrent_id)))
                     flash(f"'{str(get_torrent['name'])}' Ready To Watch !", category='success')
                     return redirect(url_for('my_list'))
-            #     elif any([x in str(get_torrent["category"]) for x in games_apps]):
-            #         print("in games")
-            #         file_names = os.listdir(source_dir)
-            #         for file_name in file_names:
-            #             shutil.move(os.path.join(source_dir, file_name), target_dir)
-            #             final_file_path = final_file_path + target_dir + '/' + file_name
-            #             torrent_downloaded_path = os.path.join('downloadedTorrents', str(torrent_category),
-            #                                                    str(torrent_id), file_name)
-            #             get_torrent_form_torrents.downloaded_path = torrent_downloaded_path
-            #             add_to_downloaded_torrent_list = DownloadedTorrentList(name=str(handle.name()),
-            #                                                                    torrent_id=torrent_id,
-            #                                                                    thumbnail=thumbnail,
-            #                                                                    category=torrent_category,
-            #                                                                    downloaded_path=torrent_downloaded_path,
-            #                                                                    user_id=get_user_identity.id)
-            #             db.session.add(add_to_downloaded_torrent_list)
-            #             db.session.commit()
-            #         shutil.rmtree(os.path.join('static', 'downloadedTemp', str(get_torrent['name'])))
-            #         flash(f"'{str(get_torrent['name'])}' Ready To Watch !", category='success')
-            #         return redirect(url_for('my_list'))
+
         return redirect(url_for('index'))
     return redirect(Templates.user_login)
 
@@ -782,19 +794,17 @@ def convert_video(torrent_id):
     if "username" in session:
         get_downloaded_torrent = DownloadedTorrentList.query.filter_by(torrent_id=torrent_id).first()
         get_files = Files.query.filter_by(torrent_fk=get_downloaded_torrent.id).all()
-        # delimiter = get_files.file_path.split('/')[-1]
-        # parts = get_files.file_path.split(delimiter)
+
         for file in get_files:
             delimiter = file.file_path.split('/')[-1]
             parts = file.file_path.split(delimiter)
-            convert = convert_to_mp4(input_path=file.file_path,
-                                     output_path=os.path.join(parts[0],
-                                                              f'{os.path.splitext(file.file_path)[0].split("/")[-1]}' +
-                                                              file.file_path.split('.')[-1].replace(
-                                                                  file.file_path.split('.')[-1], '.mp4')),
-                                     torrent_id=torrent_id)
-            print(convert)
-
+            convert_to_mp4(input_path=file.file_path,
+                           output_path=os.path.join(parts[0],
+                                                    f'{os.path.splitext(file.file_path)[0].split("/")[-1]}' +
+                                                    file.file_path.split('.')[-1].replace(
+                                                        file.file_path.split('.')[-1], '.mp4')),
+                           torrent_id=torrent_id)
+            return redirect(url_for("global_downloads"))
     return redirect(url_for('user_login'))
 
 
@@ -818,6 +828,7 @@ def download_torrent_to_client_device(torrent_id):
 
             archive = archive_torrent(archive_filename=get_torrent_form_downloaded_torrent.name, files_to_archive=files)
             print(archive, 'aaaa')
+
             return send_file(archive, as_attachment=True)
 
         get_torrent_file = Files.query.filter_by(torrent_fk=get_torrent_form_downloaded_torrent.id).first()
@@ -841,13 +852,7 @@ def cancel_download(torrent_id):
                 db.session.delete(get_torrent_to_cancel)
                 db.session.commit()
                 return redirect(url_for('index'))
-            # else:
-            #     os.remove(os.path.join('static', 'downloadedTemp',str(session["username"]), str(get_torrent_name["name"])))
-            #     flash("Download Canceled !", category='success')
-            #     print('two')
-            #     db.session.delete(get_torrent_to_cancel)
-            #     db.session.commit()
-            #     return redirect(url_for('index'))
+
     flash("Login Required", category="error")
     return redirect(url_for('user_login'))
 
@@ -868,61 +873,35 @@ def global_downloads():
 
         get_list_of_downloaded_torrents = DownloadedTorrentList.query.all()
 
-        get_torrent_ids = []
-
-        # movie_list = []
-        #
-        # for torrent_id in get_list_of_downloaded_torrents:
-        #     get_torrent_ids.append(torrent_id.torrent_id)
-        #
-        #     search = torrents.info(torrentId=torrent_id.torrent_id)
-        #     search["torrentId"] = torrent_id.torrent_id
-        #     search["user_id"] = torrent_id.user_id
-        #     movie_list.append(search)
-
         recommendation = []
+
+        unique_category = []
 
         for torrent in get_list_of_downloaded_torrents:
             torrent_info = torrents.info(torrentId=torrent.torrent_id)
+
             recommend = torrents.trending(category=torrent_info["category"])
+
             items = recommend["items"]
 
-            for movie in get_torrent_details(items, torrents, category=torrent_info["category"]):
-                recommendation.append(movie)
-        print(recommendation, len(recommendation))
-        # items = recommend["items"]
-        # for movie in items:
-        #     recommendation.append(movie)
-        # recommendation = get_torrent_details(items=items, torrents=torrents, category=torrent_info["category"])
-        # recommendation.append(movie_list)
-        # items = trending["items"]
-        # print(recommendation, len(recommendation))
+            if torrent_info["category"] not in unique_category:
+                unique_category.append(torrent_info["category"])
+                for movie in get_torrent_details(items, torrents, category=torrent_info["category"]):
+                    recommendation.append(movie)
 
         movie_list = []
-        # movie_list_for_torrent_with_multiple_files = []
 
         for downloaded_torrents in get_list_of_downloaded_torrents:
-            # get_torrent_ids.append(downloaded_torrents.torrent_id)
-
             search = torrents.info(torrentId=downloaded_torrents.torrent_id)
             search["torrentId"] = downloaded_torrents.torrent_id
             search["no_of_files"] = downloaded_torrents.no_of_files
             search["user_id"] = downloaded_torrents.user_id
             search["conversion_flag"] = downloaded_torrents.conversion_flag
-            # search["downloaded_path"] = downloaded_torrents.downloaded_path
-            # search["files" + str(downloaded_torrents.torrent_id)] = []
-            # files = os.listdir('static/' + downloaded_torrents.downloaded_path)
-            print(downloaded_torrents.id)
+
             files = Files.query.order_by(Files.file_path).filter_by(torrent_fk=downloaded_torrents.id).all()
 
-            # for file in files:
-            # search["files" + str(downloaded_torrents.torrent_id)].append(str(os.path.join('static', downloaded_torrents.downloaded_path, file)))
-            # search["files" + str(downloaded_torrents.torrent_id)].append({file.id: file.file_path})
             movie_list.append(search)
             search.update({'files': files})
-            #     # search["files" + str(downloaded_torrents.torrent_id)].sort()
-
-        # print(movie_list)
 
         return render_template('my_list.html', movie_list=movie_list, recommendation=recommendation,
                                get_user_identity=get_user_identity,
@@ -947,44 +926,36 @@ def my_list():
 
         get_list_of_downloaded_torrents = DownloadedTorrentList.query.filter_by(user_id=get_user_identity.id).all()
 
-        get_torrent_ids = []
-
         recommendation = []
+
+        unique_category = []
 
         for torrent in get_list_of_downloaded_torrents:
             torrent_info = torrents.info(torrentId=torrent.torrent_id)
+
             recommend = torrents.trending(category=torrent_info["category"])
+
             items = recommend["items"]
 
-            for movie in get_torrent_details(items, torrents, category=torrent_info["category"]):
-                recommendation.append(movie)
-        print(recommendation, len(recommendation))
+            if torrent_info["category"] not in unique_category:
+                unique_category.append(torrent_info["category"])
+                for movie in get_torrent_details(items, torrents, category=torrent_info["category"]):
+                    recommendation.append(movie)
 
         movie_list = []
-        # movie_list_for_torrent_with_multiple_files = []
 
         for downloaded_torrents in get_list_of_downloaded_torrents:
-            # get_torrent_ids.append(downloaded_torrents.torrent_id)
-
             search = torrents.info(torrentId=downloaded_torrents.torrent_id)
             search["torrentId"] = downloaded_torrents.torrent_id
             search["no_of_files"] = downloaded_torrents.no_of_files
             search["user_id"] = downloaded_torrents.user_id
             search["conversion_flag"] = downloaded_torrents.conversion_flag
-            # search["downloaded_path"] = downloaded_torrents.downloaded_path
-            # search["files" + str(downloaded_torrents.torrent_id)] = []
-            # files = os.listdir('static/' + downloaded_torrents.downloaded_path)
-            print(downloaded_torrents.id)
+
             files = Files.query.order_by(Files.file_path).filter_by(torrent_fk=downloaded_torrents.id).all()
 
-            # for file in files:
-            # search["files" + str(downloaded_torrents.torrent_id)].append(str(os.path.join('static', downloaded_torrents.downloaded_path, file)))
-            # search["files" + str(downloaded_torrents.torrent_id)].append({file.id: file.file_path})
             movie_list.append(search)
             search.update({'files': files})
-            #     # search["files" + str(downloaded_torrents.torrent_id)].sort()
 
-        print(movie_list)
         return render_template(Templates.my_list, movie_list=movie_list, get_user_identity=get_user_identity,
                                downloading=downloading, recommendation=recommendation,
                                torrent_history=torrent_history, title="My List")
@@ -1009,7 +980,7 @@ def delete_watched_torrent(torrent_id, torrent_category):
 
                 get_torrent_from_files_modal = Files.query.filter_by(
                     torrent_fk=check_if_torrent_download_exists.id).all()
-                print(get_torrent_from_files_modal)
+
                 for file in get_torrent_from_files_modal:
                     db.session.delete(file)
                     db.session.commit()
@@ -1027,7 +998,7 @@ def delete_watched_torrent(torrent_id, torrent_category):
 
 @app.route('/<string:torrent_category>', methods=['GET', 'POST'])
 def category(torrent_category):
-    if "username" in session:
+    if "username" in session and session["role"] == "user":
         download_torrents_history = DownloadHistory.query.order_by(desc(DownloadHistory.id)).all()
         download_in_progress = Torrents.query.filter_by(status="Downloading").all()
 
@@ -1061,7 +1032,7 @@ def category(torrent_category):
 @app.route('/watch_download_torrents/<string:torrent_id>/<int:file_id>', methods=['GET', 'POST'])
 def watch_download_torrents(torrent_id, file_id):
     if 'username' in session and session["role"] == "user":
-        print(file_id, '+++++++++++++++++++++++++')
+
         download_torrents_history = DownloadHistory.query.order_by(desc(DownloadHistory.id)).all()
         download_in_progress = Torrents.query.filter_by(status="Downloading").all()
 
@@ -1094,10 +1065,10 @@ def watch_download_torrents(torrent_id, file_id):
 
         get_torrent_category = DownloadedTorrentList.query.filter_by(torrent_id=torrent_id).first()
         audio_torrent_info = torrents.info(torrentId=torrent_id)
-        if get_torrent_category.category == "Music":
-            # file_path = str(get_file_to_watch.file_path.split('static/')[1])
+
+        if get_torrent_category.category == "Music" and not get_file_to_watch.file_path.split('/')[-1].endswith('.mp3'):
             file_path = str(get_file_to_watch.file_path)
-            # converting to playable format
+
             from audio_conversion import audio_conversion
 
             convert = audio_conversion(file_id=file_id, input_file=file_path,
@@ -1123,8 +1094,6 @@ def watch_download_torrents(torrent_id, file_id):
 
 @app.route('/check_if_exists/<int:torrent_id>', methods=['GET', 'POST'])
 def check_if_exists(torrent_id):
-    print('test', torrent_id)
-
     get_torrent = Torrents.query.filter_by(torrent_id=torrent_id).first()
 
     if get_torrent:
@@ -1132,21 +1101,23 @@ def check_if_exists(torrent_id):
             res = {'condition': True,
                    'conversion_flag': get_torrent.conversion_flag}
 
-            print(res)
             return jsonify(res)
         else:
             res = {'condition': False}
-            print(res)
+
             return jsonify(res)
     else:
         res = {'condition': False}
-        print(res)
+
         return jsonify(res)
 
 
 @app.route('/get_download_status/<int:torrent_id>', methods=['GET', 'POST'])
 def get_download_status(torrent_id):
     get_torrent = Torrents.query.filter_by(torrent_id=torrent_id).first()
+
+    get_session_user = Users.query.filter_by(email=session["username"]).first()
+
     if get_torrent:
         res = {'condition': True,
                'status': get_torrent.status,
@@ -1154,7 +1125,9 @@ def get_download_status(torrent_id):
                'percentage': get_torrent.download_percentage,
                'conversion_details': get_torrent.conversion_details,
                'conversion_percentage': get_torrent.conversion_percentage,
-               'conversion_flag': get_torrent.conversion_flag
+               'conversion_flag': get_torrent.conversion_flag,
+               'user_id': get_torrent.user_id,
+               'session_id': get_session_user.id,
                }
         return jsonify(res)
     else:

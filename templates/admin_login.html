@@ -1,18 +1,78 @@
 {% extends 'skel.html' %}
 
 {% block content %}
-<div class="container">
-    <h1>Login</h1>
-    <form action="{{url_for('admin_login')}}" method="post">
-        <div class="form-group">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
-        </div>
-        <div class="form-group">
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-        </div>
-        <button type="submit">Login</button>
-    </form>
+
+<link rel="stylesheet" href="{{url_for('static', filename='css/user_login.css')}}">
+{%- for category, message in get_flashed_messages(with_categories = true) %}
+{%if category== 'error'%}
+<div class="alert bg-danger alert-dismissible fade show text-white" role="alert" id="alert_danger">
+
+    <strong>{{message}}</strong>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
+{% else %}
+<div class="alert bg-info alert-dismissible fade show text-dark" role="alert" id="alert_success">
+
+    <strong>{{message}}</strong>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+{% endfor %}
+<div class="login-container" style="background-image: url('{{url_for('static', filename='images/admin_login.jpg')}}');">
+
+    <div class="login-box" style="box-shadow: 0px 0px 10px 0px cyan;">
+        <h1>Sign In</h1>
+        <form action="{{url_for('admin_login')}}" method="post">
+
+            <input placeholder="Username" type="text" name="username" class="login-input" id="admin_username" required>
+            <input type="password" placeholder="Password" name="password" class="login-input" id="admin_pass" required>
+            <button class="login-button bg-danger" id="sign_in"
+                    onclick="check_credentials()">
+                Sign In
+
+
+                <svg class="ms-2" id="sign_in_loader" style="filter:invert(1)" width="24" height="24"
+                     viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <style>
+                        .spinner_0XTQ{transform-origin:center;animation:spinner_y6GP .75s linear infinite}@keyframes spinner_y6GP{100%{transform:rotate(360deg)}}
+                    </style>
+
+                    <path class="spinner_0XTQ"
+                          d="M12,23a9.63,9.63,0,0,1-8-9.5,9.51,9.51,0,0,1,6.79-9.1A1.66,1.66,0,0,0,12,2.81h0a1.67,1.67,0,0,0-1.94-1.64A11,11,0,0,0,12,23Z"/>
+                </svg>
+
+            </button>
+
+        </form>
+        <div class="row mt-2">
+            <div class="col justify-content-end">
+                <span class="add-links"
+                      onclick="location.href='{{url_for('account_recovery')}}'">Forgot Password?</span>
+                <hr style="color:white; background:white">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% block script %}
+<script>
+    spinner = $('#sign_in_loader').hide()
+    function check_credentials(){
+        admin_username = $('#admin_username').val();
+        admin_pass = $('#admin_pass').val();
+
+
+
+        if (!(admin_username === "" || admin_pass === "")){
+
+            spinner.show();
+
+        }
+
+    }
+</script>
+{% endblock %}
+
 {% endblock %}

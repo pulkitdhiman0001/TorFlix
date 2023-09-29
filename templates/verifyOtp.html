@@ -24,13 +24,14 @@
     <div class="login-box">
         <h6 class="mb-3">A OTP (One Time Password) has been sent to '{{user}}'. Please enter the OTP to verify your
                         E-Mail.</h6>
-        <!--        <input type="email" placeholder="Email" class="login-input" required>-->
+
         <form method="POST" action="{{url_for('verify_otp')}}">
 
             <input placeholder="Enter OTP" name="verify_otp" class="login-input" required>
 
             <button class="login-button">Verify OTP</button>
             <input type="text" value="{{user}}" name="user" hidden>
+            <input type="text" value="{{role}}" name="role" hidden>
         </form>
         <div class="row mt-3">
             <div class="col">
@@ -42,6 +43,8 @@
                  <form method="POST" action="{{url_for('generate_new_otp')}}">
                     <button id="generate_new_otp" type="submit" style="cursor:pointer; border:none; background:transparent; color:#7b6565" disabled>Resend code.</button>
                      <input type="text" value="{{user}}" name="user" hidden>
+                     <input type="text" value="{{role}}" name="role" hidden>
+
                  </form>
             </div>
 
@@ -129,7 +132,7 @@ function otp_timer(remaining) {
   $('#generate_new_otp').prop('disabled', false);
 }
 
-otp_timer(300);
+otp_timer(100);
 
 
 
