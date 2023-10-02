@@ -2,19 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title id="title"></title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+    <link rel="icon" type="image/x-icon" href="{{url_for('static', filename='images/cinema.png')}}">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+    <script src="https://cdn.plyr.io/3.6.4/plyr.polyfilled.js"></script>
+    <script src="{{url_for('static', filename= 'js/player.js')}}"></script>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-
     <link rel="stylesheet" href="{{url_for('static', filename= 'css/style.css')}}">
-
-
 
     <link rel="stylesheet" href="https://cdn.plyr.io/3.6.4/plyr.css"/>
 </head>
@@ -204,17 +208,10 @@
 {% endblock %}
 </body>
 {% block scripts %}
-
-
-<script src="{{url_for('static', filename='js/refresh_and_get_data.js')}}"></script>
 <script src="{{url_for('static', filename= 'js/script.js')}}"></script>
-<script src="{{url_for('static', filename= 'js/fetch_user_content_consumed.js')}}"></script>
-
-
-<script src="https://cdn.plyr.io/3.6.4/plyr.polyfilled.js"></script>
-
 <script>
-    const menuBtn = document.querySelector(".menu-icon span");
+
+const menuBtn = document.querySelector(".menu-icon span");
     const searchBtn = document.querySelector(".search-icon");
     const cancelBtn = document.querySelector(".cancel-icon");
     const items = document.querySelector(".nav-items");
@@ -240,30 +237,6 @@
     }
 
 
-
-
-
-document.addEventListener('DOMContentLoaded', () => {
-        const player = new Plyr('video', {
-            // Configuration options can be added here
-        });
-    });
-
-
-
-document.addEventListener('DOMContentLoaded', () => {
-        const player = new Plyr('video', {
-            controls: ['play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
-            settings: [],
-            autoplay: false,
-            loop: false,
-            // Add more options as needed
-        });
-    });
-
-
-// Initialize Plyr on the audio element
-const player = new Plyr('audio');
 
 $(document).ready(function(){
     $('.operations-group').addClass("w-100 d-flex")

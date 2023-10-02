@@ -5,7 +5,10 @@ import os
 from models import create_app, db, Torrents, DownloadedTorrentList, Files
 
 
-def convert_to_mp4(input_path, output_path, torrent_id):
+def convert_to_mp4(input_path, output_path, torrent_id, filename, file_id):
+    if input_path == output_path:
+        output_path = output_path.replace(output_path.split('/')[-1], "converted" + output_path.split('/')[-1])
+
     get_torrent = DownloadedTorrentList.query.filter_by(torrent_id=torrent_id).first()
     get_torrent_form_torrents = Torrents.query.filter_by(torrent_id=torrent_id).first()
     get_files = Files.query.filter_by(torrent_fk=get_torrent.id).first()
@@ -17,8 +20,8 @@ def convert_to_mp4(input_path, output_path, torrent_id):
     try:
         cmd = [
             'ffmpeg',
+            '-y',
             '-i', input_path,  # Input file path
-
             '-c:v', 'h264_nvenc',  # NVIDIA NVENC H.264 (AVC) hardware encoder
             '-pix_fmt', 'yuv420p',  # Standard pixel format for compatibility
             '-preset', 'fast',  # Adjust the preset for speed/quality balance
@@ -47,17 +50,26 @@ def convert_to_mp4(input_path, output_path, torrent_id):
                 time_str = line.split("time=")[1].split()[0]
                 current_time = parse_time(time_str)
                 progress_percentage = (current_time / total_duration) * 100
-
+                print(progress_percentage)
                 if get_torrent_form_torrents:
-                    get_torrent_form_torrents.conversion_details = f"Processing for your device: {progress_percentage:.2f}%"
+                    # get_torrent_form_torrents.conversion_details = f"Processing for your device: {progress_percentage:.2f}%"
+                    get_torrent_form_torrents.conversion_details = f"{progress_percentage:.2f}%. Processing: {filename}"
                     get_torrent_form_torrents.conversion_percentage = progress_percentage
                     db.session.commit()
 
         get_torrent_form_torrents.conversion_percentage = 100
         db.session.commit()
 
+        # update_file_path = output_path
+        # get_files.file_path = update_file_path
+        # db.session.commit()
+
+        get_specific_file = Files.query.filter_by(id=file_id).first()
+
         update_file_path = output_path
-        get_files.file_path = update_file_path
+        get_specific_file.file_path = update_file_path
+
+        get_specific_file.conversion_flag = True
         db.session.commit()
 
         print("Conversion complete.")

@@ -268,7 +268,7 @@
                                     style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border:none"
                                     class="btn btn-success flex-fill"
                                     id="download_btn_divmylist{{movie['torrentId']}}"
-                                    onclick="location.href='{{url_for('download_torrents', magnet_link = movie['magnetLink'], torrent_id = movie['torrentId'], torrent_category = movie['category'])}}'">
+                                    onclick="location.href='{{url_for('download_torrents', magnet_link = movie['magnetLink'], torrent_id = movie['torrentId'], torrent_category = movie['category'], search=request.args.get('search', ''))}}'">
                                             <span id="download_btnmylist{{movie['torrentId']}}"
                                                   style="z-index: 2; position: relative;">Download
                                             </span>
@@ -285,6 +285,9 @@
                         {% for file in movie['files'] %}
                         <div class="btn-group operations-group" role="group"
                              id="operations{{ movie['torrentId'] }}">
+
+                            {% if not movie['category'] == "Music" %}
+
                             <button type="button" id="convertmylist{{ movie['torrentId'] }}"
                                     onclick="location.href='{{url_for('convert_video', torrent_id = movie['torrentId'], file_id = file.id )}}'; get_conversion_status(torrent_id = {{movie['torrentId'] }});"
                                     class="btn btn-success flex-fill me-2">
@@ -301,6 +304,9 @@
                                 </svg>
 
                             </button>
+
+                            {% endif %}
+
                             <button type="button"
                                     onclick="location.href='{{ url_for('download_torrent_to_client_device', torrent_id= movie['torrentId'] ) }}'; $('#downloadmylist{{ movie['torrentId'] }}').html(`<svg class='ms-2'
                                       width='24' height='24'
@@ -320,7 +326,15 @@
                             {% if get_user_identity.id == movie["user_id"] %}
                             <button type="button" id="delete_btnmylist{{ movie['torrentId'] }}"
                                     class="btn btn-danger flex-fill ms-2"
-                                    onclick="location.href='{{ url_for('delete_watched_torrent', torrent_id = movie['torrentId'], torrent_category = movie['category']) }}'">
+                                    onclick="location.href='{{ url_for('delete_watched_torrent', torrent_id = movie['torrentId'], torrent_category = movie['category']) }}'; $('#delete_btnmylist{{ movie['torrentId'] }}').html(`<svg class='ms-2'
+                                      width='24' height='24' style='filter:invert(1);'
+                                     viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
+                                    <style>
+                                        .spinner_0XTQ{transform-origin:center;animation:spinner_y6GP .75s linear infinite}@keyframes spinner_y6GP{100%{transform:rotate(360deg)}}
+                                    </style>
+                                    <path class='spinner_0XTQ'
+                                          d='M12,23a9.63,9.63,0,0,1-8-9.5,9.51,9.51,0,0,1,6.79-9.1A1.66,1.66,0,0,0,12,2.81h0a1.67,1.67,0,0,0-1.94-1.64A11,11,0,0,0,12,23Z'/>
+                                </svg>`);">
                                 <i class="fa fa-trash" aria-hidden="true"></i>
                             </button>
                             {% endif %}
@@ -361,6 +375,8 @@
             </div>
             <div class="card-bottom">{{ movie["name"] }}</div>
         </div>
+
+
         {% else %}
         <div class="card-image" style="background-image: url('{{ movie['thumbnail'] }}')" title="{{ movie['name'] }}">
             <div class="head" style="display: flex;
@@ -414,7 +430,7 @@
                             {% if movie['thumbnail'] == None %}
                             <div class="card-image"
                                  style="background-image: url('{{ movie['images'][0] }}');background-size:contain"
-                                 title="{{ movie['name'] }}">
+                                 title="{{ file.file_path.split('/')[-1] }}">
                                 <div class="head" style="display: flex;
                                     align-items:center;
                                     justify-content:space-around;
@@ -464,6 +480,12 @@
                                 </div>
                                 <div class="card-bottom">{{ movie["name"] }}</div>
                             </div>
+
+                            {% endif %}
+                            {% if file.conversion_flag == true %}
+                            <div class="bg-danger converted-mark">
+                                <h5 class="converted-text">converted</h5>
+                            </div>
                             {% endif %}
                         </div>
 
@@ -493,7 +515,7 @@
                                     style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border:none"
                                     class="btn btn-success flex-fill"
                                     id="download_btn_divmylistformultiplefiles{{movie['torrentId']}}"
-                                    onclick="location.href='{{url_for('download_torrents', magnet_link = movie['magnetLink'], torrent_id = movie['torrentId'], torrent_category = movie['category'])}}'">
+                                    onclick="location.href='{{url_for('download_torrents', magnet_link = movie['magnetLink'], torrent_id = movie['torrentId'], torrent_category = movie['category'], search=request.args.get('search', ''))}}'">
                                             <span id="download_btnmylistformultiplefiles{{movie['torrentId']}}"
                                                   style="z-index: 2; position: relative;">Download
                                             </span>
@@ -503,6 +525,9 @@
 
                         <div class="btn-group operations-group" role="group"
                              id="operationsmylistformultiplefiles{{ movie['torrentId'] }}">
+
+                            {% if not movie['category'] == "Music" %}
+
                             <button type="button" id="convertmylistformultiplefiles{{ movie['torrentId'] }}"
                                     onclick="location.href='{{url_for('convert_video', torrent_id = movie['torrentId'] )}}'; get_conversion_status(torrent_id = {{movie['torrentId'] }});"
                                     class="btn btn-success flex-fill me-2">
@@ -520,6 +545,7 @@
 
                             </button>
 
+                            {% endif %}
 
                             <button type="button"
                                     onclick="location.href='{{ url_for('download_torrent_to_client_device', torrent_id= movie['torrentId'] ) }}'; $('#downloadmylistformultiplefiles{{ movie['torrentId'] }}').html(`<svg class='ms-2'
@@ -543,7 +569,15 @@
                             {% if get_user_identity.id == movie["user_id"] %}
                             <button type="button" id="delete_btnmylistformultiplefiles{{ movie['torrentId'] }}"
                                     class="btn btn-danger flex-fill ms-2"
-                                    onclick="location.href='{{ url_for('delete_watched_torrent', torrent_id = movie['torrentId'], torrent_category = movie['category']) }}'">
+                                    onclick="location.href='{{ url_for('delete_watched_torrent', torrent_id = movie['torrentId'], torrent_category = movie['category']) }}'; $('#delete_btnmylistformultiplefiles{{ movie['torrentId'] }}').html(`<svg class='ms-2'
+                                      width='24' height='24' style='filter:invert(1);'
+                                     viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
+                                    <style>
+                                        .spinner_0XTQ{transform-origin:center;animation:spinner_y6GP .75s linear infinite}@keyframes spinner_y6GP{100%{transform:rotate(360deg)}}
+                                    </style>
+                                    <path class='spinner_0XTQ'
+                                          d='M12,23a9.63,9.63,0,0,1-8-9.5,9.51,9.51,0,0,1,6.79-9.1A1.66,1.66,0,0,0,12,2.81h0a1.67,1.67,0,0,0-1.94-1.64A11,11,0,0,0,12,23Z'/>
+                                </svg>`);">
                                 <i class="fa fa-trash" aria-hidden="true"></i>
                             </button>
                             {% endif %}
@@ -987,7 +1021,7 @@
 
                         <div class="download_container">
                             <div class="btn-toolbar w-100 d-flex" role="group">
-                                <div class="btn-group d-flex w-100 mb-2" role="group">
+                                <div class="btn-group d-flex w-100" role="group">
                                     <button type="button" class="btn btn-danger flex-fill"
                                             id="checkingmylist{{movie['torrentId']}}">Fetching Data
                                         <svg class="ms-2" style="position:absolute;filter:invert(1)" width="24"
@@ -1002,15 +1036,27 @@
                                     <span class="download_progress"
                                           style="background-image: url(https://media.giphy.com/media/U3qYN8S0j3bpK/giphy.gif)"
                                           id="download_progressmylist{{movie['torrentId']}}"></span>
+
+
                                     <button type="button"
-                                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border:none"
+                                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; "
                                             class="btn btn-success flex-fill"
                                             id="download_btn_divmylist{{movie['torrentId']}}"
-                                            onclick="location.href='{{url_for('download_torrents', magnet_link = movie['magnetLink'], torrent_id = movie['torrentId'], torrent_category = movie['category'])}}'">
-                                            <span id="download_btnmylist{{movie['torrentId']}}"
-                                                  style="z-index: 2; position: relative;">Download</span>
+                                            onclick="location.href='{{url_for('download_torrents', magnet_link = movie['magnetLink'], torrent_id = movie['torrentId'], torrent_category = movie['category'], search=request.args.get('search', ''))}}'; $('#download_btnmylist{{movie['torrentId']}}').html(`<svg class='ms-2' style='filter:invert(1)' width='24' height='24'
+                                     viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
+                                    <style>
+                                        .spinner_0XTQ{transform-origin:center;animation:spinner_y6GP .75s linear infinite}@keyframes spinner_y6GP{100%{transform:rotate(360deg)}}
+                                    </style>
+                                    <path class='spinner_0XTQ'
+                                          d='M12,23a9.63,9.63,0,0,1-8-9.5,9.51,9.51,0,0,1,6.79-9.1A1.66,1.66,0,0,0,12,2.81h0a1.67,1.67,0,0,0-1.94-1.64A11,11,0,0,0,12,23Z'/>
+                                </svg>`);">
+                                        <span id="download_btnmylist{{movie['torrentId']}}"
+                                              style="z-index: 2; position: relative;">Download</span>
                                     </button>
-                                    <button type="button" class="btn btn-danger" title="Cancel and delete torrent"
+
+
+
+                                    <button type="button" class="btn btn-danger ms-3" title="Cancel and delete torrent"
                                             id="cancel_btn_divmylist{{movie['torrentId']}}"
                                             onclick="location.href='{{url_for('cancel_download', torrent_id = movie['torrentId'])}}'">
                                         <i class="fa fa-trash" aria-hidden="true"></i>
@@ -1023,7 +1069,7 @@
                                     </button>
 
                                 </div>
-                                <div class="btn-group" role="group" id="operationsmylist{{movie['torrentId']}}">
+                                <div class="btn-group mt-2" role="group" id="operationsmylist{{movie['torrentId']}}">
                                     <button type="button" id="convertmylist{{movie['torrentId']}}"
                                             class="btn btn-success flex-fill me-2"><i
                                             class="fa fa-repeat" aria-hidden="true"></i></button>
@@ -1031,7 +1077,15 @@
                                     {% if get_user_identity == movie["user_id"]%}
                                     <button id="delete_btnmylist{{movie['torrentId']}}" type="button"
                                             class="btn btn-danger flex-fill"
-                                            onclick="location.href='{{url_for('delete_watched_torrent', torrent_id = movie['torrentId'], torrent_category = movie['category'])}}'">
+                                            onclick="location.href='{{url_for('delete_watched_torrent', torrent_id = movie['torrentId'], torrent_category = movie['category'])}}'; $('#delete_btnmylist{{ movie['torrentId'] }}').html(`<svg class='ms-2'
+                                      width='24' height='24' style='filter:invert(1);'
+                                     viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
+                                    <style>
+                                        .spinner_0XTQ{transform-origin:center;animation:spinner_y6GP .75s linear infinite}@keyframes spinner_y6GP{100%{transform:rotate(360deg)}}
+                                    </style>
+                                    <path class='spinner_0XTQ'
+                                          d='M12,23a9.63,9.63,0,0,1-8-9.5,9.51,9.51,0,0,1,6.79-9.1A1.66,1.66,0,0,0,12,2.81h0a1.67,1.67,0,0,0-1.94-1.64A11,11,0,0,0,12,23Z'/>
+                                </svg>`);">
                                         <i class="fa fa-trash" aria-hidden="true"></i>
                                     </button>
                                     {% endif %}

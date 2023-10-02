@@ -1,5 +1,23 @@
 {% extends 'skel.html' %}
 {% block content %}
+
+{%- for category, message in get_flashed_messages(with_categories = true) %}
+{%if category== 'error'%}
+<div class="alert alert-danger alert-dismissible fade show text-white" role="alert">
+
+    <strong>{{message}}</strong>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% else %}
+<div class="alert bg-info alert-dismissible fade show text-dark" role="alert">
+
+    <strong>{{message}}</strong>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+{% endfor %}
+
+
 <div class="movie-title">
 
 
@@ -299,7 +317,7 @@
                                             style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; "
                                             class="btn btn-success flex-fill"
                                             id="download_btn_divmylist{{movie['torrentId']}}"
-                                            onclick="location.href='{{url_for('download_torrents', magnet_link = movie['magnetLink'], torrent_id = movie['torrentId'], torrent_category = movie['category'])}}'; $('#download_btnmylist{{movie['torrentId']}}').html(`<svg class='ms-2' style='filter:invert(1)' width='24' height='24'
+                                            onclick="location.href='{{url_for('download_torrents', magnet_link = movie['magnetLink'], torrent_id = movie['torrentId'], torrent_category = movie['category'], search=request.args.get('search', ''))}}'; $('#download_btnmylist{{movie['torrentId']}}').html(`<svg class='ms-2' style='filter:invert(1)' width='24' height='24'
                                      viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
                                     <style>
                                         .spinner_0XTQ{transform-origin:center;animation:spinner_y6GP .75s linear infinite}@keyframes spinner_y6GP{100%{transform:rotate(360deg)}}

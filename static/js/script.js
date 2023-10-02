@@ -24,9 +24,6 @@ function get_conversion_status(torrent_id) {
             .then(function (response) {
                 return response.json();
             }).then(function (text) {
-//            $('#download_progress' + torrent_id).show()
-
-
             $('#convertmylist' + torrent_id).hide()
             $('#convertmylistformultiplefiles' + torrent_id).hide()
             $('#convertslider' + torrent_id).hide()
@@ -36,7 +33,7 @@ function get_conversion_status(torrent_id) {
             $('#delete_btnmylist' + torrent_id).hide()
             $('#delete_btnmylistformultiplefiles' + torrent_id).hide()
             $('#delete_btnslider' + torrent_id).hide()
-//            $('#checkingmylist' + torrent_id).show()
+
             $('#download_btn_divmylist' + torrent_id).hide()
             $('#download_btn_divmylistformultiplefiles' + torrent_id).hide()
             $('#download_btn_divslider' + torrent_id).hide()
@@ -77,7 +74,7 @@ function get_conversion_status(torrent_id) {
                      $('#download_progressmylist' + torrent_id).show()
                      $('#download_progressmylistformultiplefiles' + torrent_id).show()
                      $('#download_progressslider' + torrent_id).show()
-//                    $('#download_progressmylist' + torrent_id).css({'margin-right':'0px', 'max-width':'100%', 'width': text.conversion_percentage +'%'})
+
                     $('#download_progressmylist' + torrent_id).css({"border-left": "2px solid #28a745", 'max-width':'100%', 'width': text.conversion_percentage +'%'})
                     $('#download_progressmylistformultiplefiles' + torrent_id).css({"border-left": "2px solid #28a745", 'max-width':'100%', 'width': text.conversion_percentage +'%'})
                     $('#download_progressslider' + torrent_id).css({"border-left": "2px solid #28a745", 'max-width':'100%', 'width': text.conversion_percentage +'%'})
@@ -111,8 +108,6 @@ function get_conversion_status(torrent_id) {
                     $('#delete_btnmylist' + torrent_id).show()
                     $('#delete_btnmylistformultiplefiles' + torrent_id).show()
                     $('#delete_btnslider' + torrent_id).show()
-
-
 
                     clearInterval(intervalId);
                 }
@@ -187,7 +182,6 @@ function checkifexists(torrent_id, magnet_link){
             console.log('inside')
             $('#checkingindex' + torrent_id).hide()
             $('#download_btn_divindex' + torrent_id).hide()
-//            $('#watch_btn' + torrent_id).css({'border-radius':'27px', 'border-bottom-left-radius':'27px'})
             $('#watch_btnindex' + torrent_id).show()
             $("#operationsindex" + torrent_id).addClass("d-flex w-100");
             $('#convertindex' + torrent_id).show()
@@ -197,7 +191,6 @@ function checkifexists(torrent_id, magnet_link){
 
             $('#checkingslider' + torrent_id).hide()
             $('#download_btn_divslider' + torrent_id).hide()
-//            $('#watch_btn' + torrent_id).css({'border-radius':'27px', 'border-bottom-left-radius':'27px'})
             $('#watch_btnslider' + torrent_id).show()
             $("#operationsslider" + torrent_id).addClass("d-flex w-100");
             $('#convertslider' + torrent_id).show()
@@ -206,7 +199,6 @@ function checkifexists(torrent_id, magnet_link){
 
             $('#checkingdslider' + torrent_id).hide()
             $('#download_btn_divdslider' + torrent_id).hide()
-//            $('#watch_btn' + torrent_id).css({'border-radius':'27px', 'border-bottom-left-radius':'27px'})
             $('#watch_btndslider' + torrent_id).show()
             $("#operationsdslider" + torrent_id).addClass("d-flex w-100");
             $('#convertdslider' + torrent_id).show()
@@ -246,16 +238,12 @@ function checkifexists(torrent_id, magnet_link){
             $('#checkingmylist' + torrent_id).hide()
             $('#checkingmylistformultiplefiles' + torrent_id).hide()
 
-//            $('#download_btn_div' + torrent_id).css({'border-top-right-radius':'27px', 'border-bottom-right-radius':'27px'})
-                $('#checkingindex' + torrent_id).show()
-                $('#checkingslider' + torrent_id).show()
-                $('#checkingdslider' + torrent_id).show()
-                $('#checkingmylist' + torrent_id).show()
-                $('#checkingmylistformultiplefiles' + torrent_id).show()
+            $('#checkingindex' + torrent_id).show()
+            $('#checkingslider' + torrent_id).show()
+            $('#checkingdslider' + torrent_id).show()
+            $('#checkingmylist' + torrent_id).show()
+            $('#checkingmylistformultiplefiles' + torrent_id).show()
 
-
-
-//                $('#download_btn_div' + torrent_id).show()
             if(text.percentage != 100){
 
 
@@ -391,8 +379,6 @@ function checkifexists(torrent_id, magnet_link){
                         $('#delete_btnmylist' + torrent_id).show()
                         $('#delete_btnmylistformultiplefiles' + torrent_id).show()
                         }
-
-//                        return get_conversion_status(torrent_id);
 
                     }
 
@@ -532,8 +518,11 @@ jQuery(function($) {
   $('li a').each(function() {
     if (this.href === path) {
       $(this).addClass('active link-dark bg-info p-2 rounded');
+
     }
   });
+  let url = path.split("/");
+  $('#title').text(url[url.length - 1]);
 });
 
 

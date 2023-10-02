@@ -297,7 +297,7 @@
                                     style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; "
                                     class="btn btn-success flex-fill"
                                     id="download_btn_divindex{{movie['torrentId']}}"
-                                    onclick="location.href='{{url_for('download_torrents', magnet_link = movie['magnetLink'], torrent_id = movie['torrentId'], torrent_category = movie['category'])}}'; $('#download_btnindex{{movie['torrentId']}}').html(`<svg class='ms-2' style='filter:invert(1)' width='24' height='24'
+                                    onclick="location.href='{{url_for('download_torrents', magnet_link = movie['magnetLink'], torrent_id = movie['torrentId'])}}'; $('#download_btnindex{{movie['torrentId']}}').html(`<svg class='ms-2' style='filter:invert(1)' width='24' height='24'
                                      viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
                                     <style>
                                         .spinner_0XTQ{transform-origin:center;animation:spinner_y6GP .75s linear infinite}@keyframes spinner_y6GP{100%{transform:rotate(360deg)}}

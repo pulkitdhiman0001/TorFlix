@@ -127,7 +127,7 @@ class Files(db.Model):
     torrent_fk = db.Column(db.Integer, db.ForeignKey('DownloadedTorrentList.id'))
     torrent = db.relationship("DownloadedTorrentList")
     file_path = db.Column(db.String)
-
+    conversion_flag = db.Column(db.Boolean(), default=False)
     def __init__(self, torrent, file_path):
         self.torrent = torrent
         self.file_path = file_path

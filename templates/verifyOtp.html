@@ -41,7 +41,16 @@
             </div>
             <div class="col d-flex justify-content-end">
                  <form method="POST" action="{{url_for('generate_new_otp')}}">
-                    <button id="generate_new_otp" type="submit" style="cursor:pointer; border:none; background:transparent; color:#7b6565" disabled>Resend code.</button>
+                    <button id="generate_new_otp" type="submit" style="cursor:pointer; border:none; background:transparent; color:#7b6565" disabled onclick="resend_otp()">Resend code.
+                    <svg class="ms-2" id="sign_in_loader" style="filter:invert(1);" width="14" height="14"
+                     viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <style>
+                        .spinner_0XTQ{transform-origin:center;animation:spinner_y6GP .75s linear infinite}@keyframes spinner_y6GP{100%{transform:rotate(360deg)}}
+                    </style>
+                    <path class="spinner_0XTQ"
+                          d="M12,23a9.63,9.63,0,0,1-8-9.5,9.51,9.51,0,0,1,6.79-9.1A1.66,1.66,0,0,0,12,2.81h0a1.67,1.67,0,0,0-1.94-1.64A11,11,0,0,0,12,23Z"/>
+                    </svg>
+                    </button>
                      <input type="text" value="{{user}}" name="user" hidden>
                      <input type="text" value="{{role}}" name="role" hidden>
 
@@ -128,11 +137,11 @@ function otp_timer(remaining) {
   $('#otp_timer').css('display', 'none');
   $('#valid_for').css('display', 'none');
   $('#otp_expired').css('visibility', 'visible');
-  $('#generate_new_otp').css({'color':'white'})
-  $('#generate_new_otp').prop('disabled', false);
+<!--  $('#generate_new_otp').css({'color':'white'})-->
+<!--  $('#generate_new_otp').prop('disabled', false);-->
 }
 
-otp_timer(100);
+otp_timer(300);
 
 
 
@@ -140,6 +149,23 @@ function show_loader(){
         document.getElementById("loader").style.visibility = "visible";
 
 }
+
+const enable_resend_btn = setTimeout(handle_resend_otp, 10000);
+
+
+function handle_resend_otp(){
+$('#generate_new_otp').css({'color':'white'})
+$('#generate_new_otp').prop('disabled', false);
+}
+
+
+
+spinner = $('#sign_in_loader').hide();
+
+function resend_otp(){
+spinner.show();
+}
+
 </script>
 
 {% endblock %}

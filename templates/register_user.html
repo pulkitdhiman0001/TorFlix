@@ -32,10 +32,19 @@
     <div class="login-box">
         <h1>Sign Up</h1>
         <form action="{{url_for('register_user')}}" method="post">
-            <input placeholder="Email" type="email" name="email" class="login-input" required>
-            <input type="password" placeholder="Password" name="password" class="login-input" required>
-            <input type="password" placeholder="Confirm Password" name="confirm_password" class="login-input" required>
-            <button class="login-button">Sign Up</button>
+            <input placeholder="Email" type="email" name="email" class="login-input" id="user_email" required>
+            <input type="password" placeholder="Password" name="password" class="login-input" id="user_pass" required>
+            <input type="password" placeholder="Confirm Password" name="confirm_password" id="conf_pass" class="login-input" required>
+            <button class="login-button" onclick="check_credentials()">Sign Up
+            <svg class="ms-2" id="sign_in_loader" style="filter:invert(1);" width="24" height="24"
+                     viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <style>
+                        .spinner_0XTQ{transform-origin:center;animation:spinner_y6GP .75s linear infinite}@keyframes spinner_y6GP{100%{transform:rotate(360deg)}}
+                    </style>
+                    <path class="spinner_0XTQ"
+                          d="M12,23a9.63,9.63,0,0,1-8-9.5,9.51,9.51,0,0,1,6.79-9.1A1.66,1.66,0,0,0,12,2.81h0a1.67,1.67,0,0,0-1.94-1.64A11,11,0,0,0,12,23Z"/>
+                </svg>
+            </button>
 
         </form>
         <div class="row mt-2">
@@ -49,4 +58,24 @@
     </div>
 </div>
 
+
+{% block script %}
+<script>
+    spinner = $('#sign_in_loader').hide()
+    function check_credentials(){
+        user_email = $('#user_email').val();
+        user_pass = $('#user_pass').val();
+        conf_pass = $('#conf_pass').val();
+
+
+
+        if (!(user_email === "" || user_pass === "" || conf_pass === "")){
+
+            spinner.show();
+
+        }
+
+    }
+</script>
+{% endblock %}
 {% endblock %}

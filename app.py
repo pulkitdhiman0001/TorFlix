@@ -11,7 +11,7 @@ from flask import render_template, request, url_for, flash, redirect, session, j
 from flask_mail import Mail, Message
 from flask_migrate import Migrate
 from py1337x import py1337x
-from sqlalchemy import desc
+from sqlalchemy import desc, asc
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from models import create_app, db, Torrents, DownloadedTorrentList, Users, Admins, DownloadHistory, Files
@@ -35,7 +35,7 @@ def page_not_found(e):
 
 @app.route('/admin_login', methods=['GET', 'POST'])
 def admin_login():
-    if 'username' in session:
+    if 'username' in session and session["role"] == "admin":
         return redirect(url_for('users_list'))
     if request.method == 'POST':
         username = request.form["username"]
@@ -123,22 +123,22 @@ def register_admin():
                 get_admin.otp_expires_at = str(
                     datetime.datetime.strptime(current_time, "%y-%m-%d %H:%M:%S") + timedelta(minutes=5))
                 db.session.commit()
-                send_mail(request.form["email"], role=0)
+                send_mail(request.form["email"], role="admin")
                 flash("OTP sent to" + ' ' + get_admin.email, category='success')
-                return render_template(Templates.verifyOtp, user=get_admin.email)
+                return render_template(Templates.verifyOtp, user=get_admin.email, role="admin")
             flash("Email Already in use.", category='error')
             return render_template(Templates.register_admin)
         else:
-            add_new_user = Admins(email=request.form["email"],
-                                  password=hash_pass, role="user", otp=None, otp_flag=False,
-                                  otp_expires_at=None, verified=False)
-            db.session.add(add_new_user)
+            add_new_admin = Admins(username=request.form["username"], email=request.form["email"],
+                                   password=hash_pass, role="admin", otp=None, otp_flag=False,
+                                   otp_expires_at=None, verified=False)
+            db.session.add(add_new_admin)
             db.session.commit()
 
-            send_mail(request.form["email"], role=0)
-            flash("OTP sent to" + ' ' + request.form["email"], category='success')
+            send_mail(request.form["email"], role="admin")
+            # flash("OTP sent to" + ' ' + request.form["email"], category='success')
 
-            return render_template(Templates.verifyOtp, user=request.form["email"])
+            return render_template(Templates.verifyOtp, user=request.form["email"], role="admin")
 
     return render_template(Templates.register_admin)
 
@@ -176,9 +176,9 @@ def register_user():
                 get_user.otp_expires_at = str(
                     datetime.datetime.strptime(current_time, "%y-%m-%d %H:%M:%S") + timedelta(minutes=5))
                 db.session.commit()
-                send_mail(request.form["email"])
+                send_mail(request.form["email"], role="user")
                 flash("OTP sent to" + ' ' + get_user.email, category='success')
-                return render_template(Templates.verifyOtp, user=get_user.email)
+                return render_template(Templates.verifyOtp, user=get_user.email, role="user")
             flash("Email Already in use.", category='error')
             return render_template(Templates.register_user)
         else:
@@ -188,17 +188,17 @@ def register_user():
             db.session.add(add_new_user)
             db.session.commit()
 
-            send_mail(request.form["email"], role=1)
-            flash("OTP sent to" + ' ' + request.form["email"], category='success')
+            send_mail(request.form["email"], role="user")
+            # flash("OTP sent to" + ' ' + request.form["email"], category='success')
 
-            return render_template(Templates.verifyOtp, user=request.form["email"])
+            return render_template(Templates.verifyOtp, user=request.form["email"], role="user")
     return render_template(Templates.register_user)
 
 
 mail = Mail(app)
 
 
-@app.route('/verify-otp/<string:email>/<int:role>', methods=['GET', 'POST'])
+@app.route('/verify-otp/<string:email>/<string:role>', methods=['GET', 'POST'])
 def send_mail(email, role):
     if request.method == 'POST':
 
@@ -210,7 +210,7 @@ def send_mail(email, role):
         msg.body = f"Your One Time Password is {otp_generate}"
 
         mail.send(msg)
-        if role == 1:
+        if role == "user":
             get_user = Users.query.filter_by(email=email).first()
             if get_user:
                 get_user.otp = otp_generate
@@ -221,7 +221,7 @@ def send_mail(email, role):
                     datetime.datetime.strptime(current_time, "%y-%m-%d %H:%M:%S") + timedelta(minutes=5))
 
                 db.session.commit()
-                return render_template(Templates.verifyOtp, user=get_user.email)
+                return render_template(Templates.verifyOtp, user=get_user.email, role="user")
 
             else:
                 flash(f"No account found with the E-Mail: {request.form['email']}", category='error')
@@ -257,7 +257,7 @@ def generate_new_otp():
         msg.body = f"Your One Time Password is {otp_generate}"
         mail.send(msg)
 
-        if request.form["role"] == "1":
+        if request.form["role"] == "user":
             get_user = Users.query.filter_by(email=request.form["user"]).first()
             get_user.otp = otp_generate
             get_user.otp_flag = False
@@ -269,7 +269,7 @@ def generate_new_otp():
 
             db.session.commit()
             flash("Email With New OTP Sent", category='success')
-            return render_template(Templates.verifyOtp, user=get_user.email)
+            return render_template(Templates.verifyOtp, user=get_user.email, role="user")
         else:
             get_admin = Admins.query.filter_by(email=email).first()
             get_admin.otp = otp_generate
@@ -282,7 +282,7 @@ def generate_new_otp():
 
             db.session.commit()
             flash("Email With New OTP Sent", category='success')
-            return render_template(Templates.verifyOtp, user=get_admin.email)
+            return render_template(Templates.verifyOtp, user=get_admin.email, role="admin")
 
     return render_template(Templates.verifyOtp, user=email)
 
@@ -290,7 +290,7 @@ def generate_new_otp():
 @app.route('/verify_otp', methods=['GET', 'POST'])
 def verify_otp():
     if request.method == "POST":
-        if request.form["role"] == "1":
+        if request.form["role"] == "user":
             get_user = Users.query.filter_by(email=request.form["user"]).first()
 
             now = datetime.datetime.now()
@@ -300,22 +300,22 @@ def verify_otp():
 
             if get_user.otp != request.form['verify_otp']:
                 flash('Invalid OTP.', category='error')
-                return render_template(Templates.verifyOtp, user=get_user.email)
+                return render_template(Templates.verifyOtp, user=get_user.email, role="user")
 
             if get_user.otp_flag is True:
                 flash('OTP already used.', category='error')
-                return render_template(Templates.verifyOtp, user=get_user.email)
+                return render_template(Templates.verifyOtp, user=get_user.email, role="user")
 
             if datetime.datetime.strptime(current_time, "%y-%m-%d %H:%M:%S") > db_date_time:
                 flash('OTP seems to be Expired.', category='error')
-                return render_template(Templates.verifyOtp, user=get_user.email)
+                return render_template(Templates.verifyOtp, user=get_user.email, role="user")
 
             else:
                 get_user.otp_flag = True
                 get_user.verified = True
                 db.session.commit()
                 flash('Account Created Successfully.', category='success')
-                return render_template(Templates.user_login)
+                return redirect(url_for("user_login"))
 
         else:
             get_admin = Admins.query.filter_by(email=request.form["user"]).first()
@@ -327,15 +327,15 @@ def verify_otp():
 
             if get_admin.otp != request.form['verify_otp']:
                 flash('Invalid OTP.', category='error')
-                return render_template(Templates.verifyOtp, user=get_admin.email)
+                return render_template(Templates.verifyOtp, user=get_admin.email, role="admin")
 
             if get_admin.otp_flag is True:
                 flash('OTP already used.', category='error')
-                return render_template(Templates.verifyOtp, user=get_admin.email)
+                return render_template(Templates.verifyOtp, user=get_admin.email, role="admin")
 
             if datetime.datetime.strptime(current_time, "%y-%m-%d %H:%M:%S") > db_date_time:
                 flash('OTP seems to be Expired.', category='error')
-                return render_template(Templates.verifyOtp, user=get_admin.email)
+                return render_template(Templates.verifyOtp, user=get_admin.email, role="admin")
 
             else:
                 get_admin.otp_flag = True
@@ -451,7 +451,9 @@ def password_reset():
     return render_template(Templates.reset_password)
 
 
-torrents = py1337x(cache='py1337xCache')
+torrents = py1337x(cache='py1337xCache', proxy="1377x.to", cookie="19K0dq78_ToXB1sSWJpjynLT51rVGCv.snLIafh1xN8"
+                                                                  "-1696246305-0-1-ea49e96f.c6e9fa2b.72f3dc56-250.2"
+                                                                  ".1696246305")
 
 
 @app.route('/users_list', methods=['GET', 'POST'])
@@ -486,8 +488,8 @@ def users_list():
         return render_template(Templates.users_list, get_users=get_users, final_list=final_list,
                                )
 
-    flash("Session Expired", category="error")
-    return render_template(Templates.admin_login)
+    flash("Login Required", category="error")
+    return redirect(url_for("admin_login"))
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -578,6 +580,18 @@ def download_torrents(magnet_link, torrent_id):
 
         check_if_exists_in_torrents = Torrents.query.filter_by(torrent_id=torrent_id).first()
 
+        get_torrent_info = torrents.info(torrentId=torrent_id)
+
+        print(get_torrent_info)
+
+        if get_torrent_info["magnetLink"] is None:
+            flash("Something went wrong. THere is an issue with this torrent or is deleted form the server.",
+                  category="error")
+            # return redirect(url_for("search_torrents", page_no=1))
+            search = request.args.get("search", '')
+            search_query = search
+            return redirect(url_for("search_torrents", page_no=1, search=search_query))
+
         get_user_identity = Users.query.filter_by(email=session["username"]).first()
         if not check_if_exists_in_torrents:
             check_if_torrent_exists_in_history = DownloadHistory.query.filter_by(torrent_id=torrent_id).first()
@@ -593,7 +607,6 @@ def download_torrents(magnet_link, torrent_id):
             thumbnail = str(get_torrent["thumbnail"])
 
             link = magnet_link
-
             ses = lt.session()
             ses.listen_on(6881, 6891)
             params = {
@@ -635,7 +648,7 @@ def download_torrents(magnet_link, torrent_id):
                 percentage = '%.2f%% complete (down: %.1f kb/s up: %.1f kB/s peers: %d) %s ' % \
                              (s.progress * 100, s.download_rate / 1000, s.upload_rate / 1000, s.num_peers,
                               state_str[s.state])
-
+                print(percentage)
                 get_torrent = Torrents.query.filter_by(torrent_id=torrent_id).first()
                 if get_torrent:
                     get_torrent.download_details = str(percentage)
@@ -793,9 +806,13 @@ def download_torrents(magnet_link, torrent_id):
 def convert_video(torrent_id):
     if "username" in session:
         get_downloaded_torrent = DownloadedTorrentList.query.filter_by(torrent_id=torrent_id).first()
-        get_files = Files.query.filter_by(torrent_fk=get_downloaded_torrent.id).all()
+        get_files = Files.query.order_by(asc(Files.file_path)).filter_by(torrent_fk=get_downloaded_torrent.id).all()
+
+        for i in get_files:
+            print(i)
 
         for file in get_files:
+            print(file.id)
             delimiter = file.file_path.split('/')[-1]
             parts = file.file_path.split(delimiter)
             convert_to_mp4(input_path=file.file_path,
@@ -803,8 +820,8 @@ def convert_video(torrent_id):
                                                     f'{os.path.splitext(file.file_path)[0].split("/")[-1]}' +
                                                     file.file_path.split('.')[-1].replace(
                                                         file.file_path.split('.')[-1], '.mp4')),
-                           torrent_id=torrent_id)
-            return redirect(url_for("global_downloads"))
+                           torrent_id=torrent_id, filename=file.file_path.split('/')[-1], file_id=file.id)
+        return redirect(url_for("global_downloads"))
     return redirect(url_for('user_login'))
 
 
@@ -1047,11 +1064,15 @@ def watch_download_torrents(torrent_id, file_id):
         search_related_torrents = torrents.info(torrentId=torrent_id)
         if search_related_torrents["genre"] is not None:
             search_related = torrents.trending(search_related_torrents['genre'][0])
-
+            print(search_related, search_related_torrents["genre"])
         else:
             search_related = torrents.top()
 
         items = search_related["items"]
+
+        if len(items) < 1:
+            search_related = torrents.top()
+            items = search_related["items"]
 
         movie_list = get_torrent_details(items, torrents)
 
@@ -1083,12 +1104,24 @@ def watch_download_torrents(torrent_id, file_id):
                                    movie_list=movie_list,
                                    torrent_history=torrent_history, get_user_identity=get_user_identity,
                                    mimetype='video/mp4')
-
+        print(get_torrent.conversion_flag, movie_list)
+        if not get_torrent.conversion_flag and not get_torrent_category.category == "Music":
+            flash("Dealing with torrents with different formats is a tricky task. If there is any issue with playing "
+                  "the video (like no video showing, or audio not playing),"
+                  "you can fix the issue in 'My List' section. just select the movie you want to watch and click on the"
+                  "wrench icon (Processing may take some time). or simply you can download the movie to your device and"
+                  "can play with your favourite media player.", category="success")
+            return render_template('playvideo.html', new_file_name=new_file_name, file_path=file_path,
+                                   downloading=downloading,
+                                   get_torrent=get_torrent, audio_torrent_info=audio_torrent_info,
+                                   movie_list=movie_list,
+                                   torrent_history=torrent_history, get_user_identity=get_user_identity,
+                                   mimetype='video/mp4')
         return render_template('playvideo.html', new_file_name=new_file_name, file_path=file_path,
                                downloading=downloading,
                                get_torrent=get_torrent, audio_torrent_info=audio_torrent_info, movie_list=movie_list,
-                               torrent_history=torrent_history, get_user_identity=get_user_identity, mimetype='video'
-                                                                                                              '/mp4')
+                               torrent_history=torrent_history, get_user_identity=get_user_identity,
+                               mimetype='video/mp4')
     return redirect(url_for('user_login'))
 
 
