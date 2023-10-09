@@ -87,7 +87,7 @@ Before getting started, ensure that you meet the following prerequisites:
       ```bash
       brew install ffmpeg
       ```
-6. Libtorret Fix (Optional. If you are facing issues in installation of libtorrent):
+## Libtorret Fix (Optional. If you are facing issues in installation of libtorrent):
    ** If you are getting error such as "module not found 'libtorrent' or not able to install or build the libtorrent library. THen you can do this process manually by following the below steps." **
   - visit this link: https://shorturl.at/gijuT and download the two folders.
   - Now go to the following path in your project folder & paste the two folders you have downloaded:
