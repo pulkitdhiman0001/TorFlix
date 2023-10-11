@@ -95,15 +95,15 @@ Before getting started, ensure that you meet the following prerequisites:
     sudo apt install python3-libtorrent
     ```
   - Now get the installation path of the system-wide libtorrent you just installed:
-      - open the new terminal and type 'python3 shell'
+      - open the new terminal and type 'python3'
       - then type the following code to get the system-wide libtorrent path:
         ``` bash
-        import sys
-        print(sys.path)
+        import libtorrent
+        print(libtorrent)
         ```
   - Next we need to make a bridge between the system-wide libtorrent and your project virtual environment. you can do this by using the following command:
 ``` bash
-ln -s /the/path/you/got/using the print(sys.path) command your_virtual_env_path/lib/python3.11/site-packages/libtorrent.cpython-311-x86_64-linux-gnu.so
+ln -s /the-path-you-got-using/print(sys.path) your_virtual_env_path/lib/python3.11/site-packages/libtorrent.cpython-311-x86_64-linux-gnu.so
 ```
   -Example:
 ``` bash
