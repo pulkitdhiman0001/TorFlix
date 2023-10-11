@@ -89,9 +89,26 @@ Before getting started, ensure that you meet the following prerequisites:
       ```
 ## Libtorret Fix (Optional. If you are facing issues in installation of libtorrent):
    ** If you are getting error such as "module not found 'libtorrent' or not able to install or build the libtorrent library. Then you can do this process manually by following the below steps." **
-  - Visit this link: https://shorturl.at/gijuT and download the two folders.
-  - Now go to the following path in your project folder & paste the two folders you have downloaded:
-      - your_project > venv > lib > python3x. > site-packages
+  - Fist install all the packages using requirements.txt
+  - open the terminal and install the libtorrent system-wide library using the following command (skip if already done):
+    ```bash
+    sudo apt install python3-libtorrent
+    ```
+  - Now get the installation path of the system-wide libtorrent you just installed:
+      - open the new terminal and type 'python3 shell'
+      - then type the following code to get the system-wide libtorrent path:
+        ``` bash
+        import sys
+        print(sys.path)
+        ```
+  - Next we need to make a bridge between the system-wide libtorrent and your project virtual environment. you can do this by using the following command:
+``` bash
+ln -s /the/path/you/got/using the print(sys.path) command your_virtual_env_path/lib/python3.11/site-packages/libtorrent.cpython-311-x86_64-linux-gnu.so
+```
+  -Example:
+``` bash
+ln -s /usr/lib/python3/dist-packages/libtorrent.cpython-311-x86_64-linux-gnu.so /home/anon/PycharmProjects/torflix-sample/venv/lib/python3.11/site-packages/libtorrent.cpython-311-x86_64-linux-gnu.so
+```
 - This should fix all your problems with libtorrent.
 
 ## Usage
