@@ -451,9 +451,7 @@ def password_reset():
     return render_template(Templates.reset_password)
 
 
-torrents = py1337x(cache='py1337xCache', proxy="1377x.to", cookie="19K0dq78_ToXB1sSWJpjynLT51rVGCv.snLIafh1xN8"
-                                                                  "-1696246305-0-1-ea49e96f.c6e9fa2b.72f3dc56-250.2"
-                                                                  ".1696246305")
+torrents = py1337x(cache='py1337xCache', proxy="1377x.to")
 
 
 @app.route('/users_list', methods=['GET', 'POST'])
@@ -525,10 +523,21 @@ def index():
 @app.route('/torrents/category=<string:badge>', methods=['GET', 'POST'])
 def badge_torrents(badge):
     if "username" in session:
+        download_torrents_history = DownloadHistory.query.order_by(desc(DownloadHistory.id)).all()
+        download_in_progress = Torrents.query.filter_by(status="Downloading").all()
+
+        get_user_identity = Users.query.filter_by(email=session["username"]).first()
+        torrent_history = history(download_torrents_history, torrents, DownloadedTorrentList,
+                                  get_user_identity=get_user_identity.id)
+
+        downloading = currently_downloading(download_in_progress, torrents, DownloadedTorrentList,
+                                            get_user_identity=get_user_identity.id)
+
         get_trending = torrents.trending()
         items = get_trending["items"]
         movie_list = get_torrent_details(torrents=torrents, badge=badge, items=items)
-        return render_template('index.html', movie_list=movie_list, title=badge.capitalize())
+        return render_template('index.html', movie_list=movie_list, title=badge.capitalize(), torrent_history=torrent_history, downloading=downloading, get_user_identity=get_user_identity)
+    flash("Login Required", category="error")
     return redirect(url_for('user_login'))
 
 
@@ -1106,10 +1115,9 @@ def watch_download_torrents(torrent_id, file_id):
                                    mimetype='video/mp4')
         print(get_torrent.conversion_flag, movie_list)
         if not get_torrent.conversion_flag and not get_torrent_category.category == "Music":
-            flash("Dealing with torrents with different formats is a tricky task. If there is any issue with playing "
-                  "the video (like no video showing, or audio not playing),"
-                  "you can fix the issue in 'My List' section. just select the movie you want to watch and click on the"
-                  "wrench icon (Processing may take some time). or simply you can download the movie to your device and"
+            flash("Dealing with torrents with different formats is a tricky task. If there is any issue with plathe video (like no video showing, or audio not playing),"
+                  "you can fix the issue in 'My List' section. just select the movie you want to watch and click on the "
+                  "wrench icon (Processing may take some time). or simply you can download the movie to your device and "
                   "can play with your favourite media player.", category="success")
             return render_template('playvideo.html', new_file_name=new_file_name, file_path=file_path,
                                    downloading=downloading,

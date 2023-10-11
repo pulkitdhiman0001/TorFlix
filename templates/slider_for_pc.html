@@ -320,14 +320,14 @@
                         {% for file in movie_history['files'] %}
                         <button type="button" class="btn btn-primary flex-fill"
                                 id="watch_btnslider{{movie_history['torrentId']}}"
-                                onclick="location.href='{{ url_for('watch_download_torrents', torrent_id = movie_history['torrentId'], file_id=file.id) }}'">
-                            Watch
+                                onclick="location.href='{{ url_for('global_downloads') }}'">
+                            Go To G-Downloads/MyList Section or Click Me to Redirect
                         </button>
                         {% endfor %}
                     </div>
                     <div class="btn-group operations-group" role="group"
                          id="operations{{ movie_history['torrentId'] }}">
-                        <button type="button" id="convertslider{{ movie_history['torrentId'] }}"
+                        <button title="Fix Audio/Videos issues" type="button" id="convertslider{{ movie_history['torrentId'] }}"
                                 onclick="location.href='{{url_for('convert_video', torrent_id = movie_history['torrentId'] )}}'; get_conversion_status(torrent_id = {{movie_history['torrentId'] }});"
                                 class="btn btn-success flex-fill me-2">
                             <i id="converticonslider{{movie_history['torrentId']}}" class="fa fa-wrench"
@@ -344,7 +344,7 @@
                             </svg>
 
                         </button>
-                        <button type="button"
+                        <button title="Download to your device" type="button"
                                 onclick="location.href='{{ url_for('download_torrent_to_client_device', torrent_id= movie_history['torrentId'] ) }}'"
                                 id="downloadslider{{ movie_history['torrentId'] }}"
                                 class="btn btn-warning flex-fill me-2">

@@ -1,8 +1,8 @@
 from dotenv import dotenv_values
 
 # NEVER HARDCODE YOUR CONFIGURATION IN YOUR CODE
-# INSTEAD CREATE A .env FILE AND STORE IN IT
-config = dotenv_values(".env")
+# INSTEAD CREATE A .env_sample FILE AND STORE IN IT
+config = dotenv_values(".env_sample")
 
 
 class Config(object):

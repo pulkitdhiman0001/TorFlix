@@ -321,18 +321,12 @@
 
                             <button id="watch_btndslider{{dmovie['torrentId']}}" type="button"
                                     class="btn btn-primary flex-fill"
-                                    onclick="location.href='{{url_for('watch_download_torrents', torrent_id = dmovie['torrentId'], file_id =1)}}'">
-                                Watch
+                                    onclick="location.href='{{url_for('global_downloads')}}'">
+                                Go To G-Downloads/MyList Section or Click Me to Redirect
                             </button>
 
                         </div>
-                        <div class="btn-group" role="group" id="operationsdslider{{dmovie['torrentId']}}">
-                            <button type="button" id="convertdslider{{dmovie['torrentId']}}"
-                                    class="btn btn-success flex-fill me-2"><i
-                                    class="fa fa-wrench" aria-hidden="true"></i></button>
 
-
-                        </div>
                     </div>
                 </div>
 
