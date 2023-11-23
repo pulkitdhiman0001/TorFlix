@@ -101,9 +101,14 @@ Before getting started, ensure that you meet the following prerequisites:
         import libtorrent
         print(libtorrent)
         ```
+      - You will get the following result: <br>
+        <module 'libtorrent' from '/usr/lib/python3/dist-packages/libtorrent.cpython-311-x86_64-linux-gnu.so'>
+      - Copy the path i.e: <br>
+      /usr/lib/python3/dist-packages/libtorrent.cpython-311-x86_64-linux-gnu.so
+        
   - Next we need to make a bridge between the system-wide libtorrent and your project virtual environment. you can do this by using the following command:
 ``` bash
-ln -s /the-path-you-got-using/print(sys.path) your_virtual_env_path/lib/python3.11/site-packages/libtorrent.cpython-311-x86_64-linux-gnu.so
+ln -s /the-path-you-got-using/print(sys.path) /your_virtual_env_path/lib/python3.11/site-packages/libtorrent.cpython-311-x86_64-linux-gnu.so
 ```
   -Example:
 ``` bash
