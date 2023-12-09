@@ -1,3 +1,6 @@
+Welcome to my Flask project! 🚀 Explore the fun side of coding with this exciting project. Please note that in the initial release, a few bugs might be lurking around. Fear not! I'm committed to delivering a seamless experience, and future commits will squash these bugs. Your feedback is invaluable, so feel free to report any issues you encounter. Happy coding! 🌐🐍 #Flask #OpenSource #BugSquashing #FeedbackWelcome
+
+
 # TorFlix
 
 **TorFlix** is a Flask-based web application that allows users to download movies, TV shows, documentaries, anime, music, and more. This README will guide you through the process of setting up and running the **TorFlix** project on your local machine.
